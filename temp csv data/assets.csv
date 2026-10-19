@@ -1,0 +1,101 @@
+﻿asset_tag,serial_number,model,manufacturer,vendor,location,assigned_employee,status,purchase_date,purchase_cost,warranty_expiry,notes
+PROIT-00001,DEMO-DEL-00001,Latitude 5450,Dell,Vertex Office Tech,Bengaluru HQ,,available,2022-02-01,5879.00,2025-01-31,Fictional demo asset record 001; not a real company asset.
+PROIT-00002,DEMO-LEN-00002,ThinkPad T14 Gen 5,Lenovo,Redwood Business Devices,Chennai Office,EMP-0014,assigned,2022-02-18,7258.00,2025-02-17,Fictional demo asset record 002; not a real company asset.
+PROIT-00003,DEMO-APP-00003,MacBook Air 13,Apple,BrightPath IT Services,Hyderabad Office,,in_repair,2022-03-07,8637.00,2025-03-06,Fictional demo asset record 003; not a real company asset.
+PROIT-00004,DEMO-HP-00004,EliteBook 840 G11,HP,BluePeak Systems,Bengaluru HQ,,retired,2022-03-24,10016.00,2025-03-23,Fictional demo asset record 004; not a real company asset.
+PROIT-00005,DEMO-DEL-00005,OptiPlex Micro 7020,Dell,Summit Peripheral Co,Chennai Office,,available,2022-04-10,11395.00,2025-04-09,Fictional demo asset record 005; not a real company asset.
+PROIT-00006,DEMO-LEN-00006,ThinkCentre M90q,Lenovo,SilverOak Components,Hyderabad Office,EMP-0042,assigned,2022-04-27,12774.00,2025-04-26,Fictional demo asset record 006; not a real company asset.
+PROIT-00007,DEMO-HP-00007,Pro Mini 400 G9,HP,Northstar IT Supplies,Bengaluru HQ,,in_repair,2022-05-14,14153.00,2025-05-13,Fictional demo asset record 007; not a real company asset.
+PROIT-00008,DEMO-DEL-00008,UltraSharp U2724D,Dell,Cloudline Networks,Chennai Office,,retired,2022-05-31,15532.00,2025-05-30,Fictional demo asset record 008; not a real company asset.
+PROIT-00009,DEMO-LEN-00009,ThinkVision T24i-30,Lenovo,Pioneer Secure Tech,Hyderabad Office,,available,2022-06-17,16911.00,2025-06-16,Fictional demo asset record 009; not a real company asset.
+PROIT-00010,DEMO-SAM-00010,Samsung ViewFinity S6,Samsung,Evergreen Tech Partners,Bengaluru HQ,EMP-0010,assigned,2022-07-04,18290.00,2025-07-03,Fictional demo asset record 010; not a real company asset.
+PROIT-00011,DEMO-SAM-00011,Galaxy A55,Samsung,Vertex Office Tech,Chennai Office,,in_repair,2022-07-21,19669.00,2025-07-20,Fictional demo asset record 011; not a real company asset.
+PROIT-00012,DEMO-APP-00012,iPhone 15,Apple,Redwood Business Devices,Hyderabad Office,,retired,2022-08-07,21048.00,2025-08-06,Fictional demo asset record 012; not a real company asset.
+PROIT-00013,DEMO-CIS-00013,Catalyst 9200L,Cisco,BrightPath IT Services,Bengaluru HQ,,available,2022-08-24,22427.00,2025-08-23,Fictional demo asset record 013; not a real company asset.
+PROIT-00014,DEMO-HP-00014,LaserJet Pro 4002,HP,BluePeak Systems,Chennai Office,EMP-0048,assigned,2022-09-10,23806.00,2025-09-09,Fictional demo asset record 014; not a real company asset.
+PROIT-00015,DEMO-DEL-00015,PowerEdge R360,Dell,Summit Peripheral Co,Hyderabad Office,,in_repair,2022-09-27,25185.00,2025-09-26,Fictional demo asset record 015; not a real company asset.
+PROIT-00016,DEMO-DEL-00016,Latitude 5450,Dell,SilverOak Components,Bengaluru HQ,,retired,2022-10-14,26564.00,2025-10-13,Fictional demo asset record 016; not a real company asset.
+PROIT-00017,DEMO-LEN-00017,ThinkPad T14 Gen 5,Lenovo,Northstar IT Supplies,Chennai Office,,available,2022-10-31,27943.00,2025-10-30,Fictional demo asset record 017; not a real company asset.
+PROIT-00018,DEMO-APP-00018,MacBook Air 13,Apple,Cloudline Networks,Hyderabad Office,EMP-0026,assigned,2022-11-17,29322.00,2025-11-16,Fictional demo asset record 018; not a real company asset.
+PROIT-00019,DEMO-HP-00019,EliteBook 840 G11,HP,Pioneer Secure Tech,Bengaluru HQ,,in_repair,2022-12-04,30701.00,2025-12-03,Fictional demo asset record 019; not a real company asset.
+PROIT-00020,DEMO-DEL-00020,OptiPlex Micro 7020,Dell,Evergreen Tech Partners,Chennai Office,,retired,2022-12-21,32080.00,2025-12-20,Fictional demo asset record 020; not a real company asset.
+PROIT-00021,DEMO-LEN-00021,ThinkCentre M90q,Lenovo,Vertex Office Tech,Hyderabad Office,,available,2023-01-07,33459.00,2026-01-06,Fictional demo asset record 021; not a real company asset.
+PROIT-00022,DEMO-HP-00022,Pro Mini 400 G9,HP,Redwood Business Devices,Bengaluru HQ,EMP-0004,assigned,2023-01-24,34838.00,2026-01-23,Fictional demo asset record 022; not a real company asset.
+PROIT-00023,DEMO-DEL-00023,UltraSharp U2724D,Dell,BrightPath IT Services,Chennai Office,,in_repair,2023-02-10,36217.00,2026-02-09,Fictional demo asset record 023; not a real company asset.
+PROIT-00024,DEMO-LEN-00024,ThinkVision T24i-30,Lenovo,BluePeak Systems,Hyderabad Office,,retired,2023-02-27,37596.00,2026-02-26,Fictional demo asset record 024; not a real company asset.
+PROIT-00025,DEMO-SAM-00025,Samsung ViewFinity S6,Samsung,Summit Peripheral Co,Bengaluru HQ,,available,2023-03-16,38975.00,2026-03-15,Fictional demo asset record 025; not a real company asset.
+PROIT-00026,DEMO-SAM-00026,Galaxy A55,Samsung,SilverOak Components,Chennai Office,EMP-0032,assigned,2023-04-02,40354.00,2026-04-01,Fictional demo asset record 026; not a real company asset.
+PROIT-00027,DEMO-APP-00027,iPhone 15,Apple,Northstar IT Supplies,Hyderabad Office,,in_repair,2023-04-19,41733.00,2026-04-18,Fictional demo asset record 027; not a real company asset.
+PROIT-00028,DEMO-CIS-00028,Catalyst 9200L,Cisco,Cloudline Networks,Bengaluru HQ,,retired,2023-05-06,43112.00,2026-05-05,Fictional demo asset record 028; not a real company asset.
+PROIT-00029,DEMO-HP-00029,LaserJet Pro 4002,HP,Pioneer Secure Tech,Chennai Office,,available,2023-05-23,44491.00,2026-05-22,Fictional demo asset record 029; not a real company asset.
+PROIT-00030,DEMO-DEL-00030,PowerEdge R360,Dell,Evergreen Tech Partners,Hyderabad Office,EMP-0030,assigned,2023-06-09,45870.00,2026-06-08,Fictional demo asset record 030; not a real company asset.
+PROIT-00031,DEMO-DEL-00031,Latitude 5450,Dell,Vertex Office Tech,Bengaluru HQ,,in_repair,2023-06-26,47249.00,2026-06-25,Fictional demo asset record 031; not a real company asset.
+PROIT-00032,DEMO-LEN-00032,ThinkPad T14 Gen 5,Lenovo,Redwood Business Devices,Chennai Office,,retired,2023-07-13,48628.00,2026-07-12,Fictional demo asset record 032; not a real company asset.
+PROIT-00033,DEMO-APP-00033,MacBook Air 13,Apple,BrightPath IT Services,Hyderabad Office,,available,2023-07-30,50007.00,2026-07-29,Fictional demo asset record 033; not a real company asset.
+PROIT-00034,DEMO-HP-00034,EliteBook 840 G11,HP,BluePeak Systems,Bengaluru HQ,EMP-0038,assigned,2023-08-16,51386.00,2026-08-15,Fictional demo asset record 034; not a real company asset.
+PROIT-00035,DEMO-DEL-00035,OptiPlex Micro 7020,Dell,Summit Peripheral Co,Chennai Office,,in_repair,2023-09-02,52765.00,2026-09-01,Fictional demo asset record 035; not a real company asset.
+PROIT-00036,DEMO-LEN-00036,ThinkCentre M90q,Lenovo,SilverOak Components,Hyderabad Office,,retired,2023-09-19,54144.00,2026-09-18,Fictional demo asset record 036; not a real company asset.
+PROIT-00037,DEMO-HP-00037,Pro Mini 400 G9,HP,Northstar IT Supplies,Bengaluru HQ,,available,2023-10-06,55523.00,2026-10-05,Fictional demo asset record 037; not a real company asset.
+PROIT-00038,DEMO-DEL-00038,UltraSharp U2724D,Dell,Cloudline Networks,Chennai Office,EMP-0016,assigned,2023-10-23,56902.00,2026-10-22,Fictional demo asset record 038; not a real company asset.
+PROIT-00039,DEMO-LEN-00039,ThinkVision T24i-30,Lenovo,Pioneer Secure Tech,Hyderabad Office,,in_repair,2023-11-09,58281.00,2026-11-08,Fictional demo asset record 039; not a real company asset.
+PROIT-00040,DEMO-SAM-00040,Samsung ViewFinity S6,Samsung,Evergreen Tech Partners,Bengaluru HQ,,retired,2023-11-26,59660.00,2026-11-25,Fictional demo asset record 040; not a real company asset.
+PROIT-00041,DEMO-SAM-00041,Galaxy A55,Samsung,Vertex Office Tech,Chennai Office,,available,2023-12-13,61039.00,2026-12-12,Fictional demo asset record 041; not a real company asset.
+PROIT-00042,DEMO-APP-00042,iPhone 15,Apple,Redwood Business Devices,Hyderabad Office,EMP-0044,assigned,2023-12-30,62418.00,2026-12-29,Fictional demo asset record 042; not a real company asset.
+PROIT-00043,DEMO-CIS-00043,Catalyst 9200L,Cisco,BrightPath IT Services,Bengaluru HQ,,in_repair,2024-01-16,63797.00,2027-01-15,Fictional demo asset record 043; not a real company asset.
+PROIT-00044,DEMO-HP-00044,LaserJet Pro 4002,HP,BluePeak Systems,Chennai Office,,retired,2024-02-02,65176.00,2027-02-01,Fictional demo asset record 044; not a real company asset.
+PROIT-00045,DEMO-DEL-00045,PowerEdge R360,Dell,Summit Peripheral Co,Hyderabad Office,,available,2024-02-19,66555.00,2027-02-18,Fictional demo asset record 045; not a real company asset.
+PROIT-00046,DEMO-DEL-00046,Latitude 5450,Dell,SilverOak Components,Bengaluru HQ,EMP-0022,assigned,2024-03-07,67934.00,2027-03-07,Fictional demo asset record 046; not a real company asset.
+PROIT-00047,DEMO-LEN-00047,ThinkPad T14 Gen 5,Lenovo,Northstar IT Supplies,Chennai Office,,in_repair,2024-03-24,69313.00,2027-03-24,Fictional demo asset record 047; not a real company asset.
+PROIT-00048,DEMO-APP-00048,MacBook Air 13,Apple,Cloudline Networks,Hyderabad Office,,retired,2024-04-10,70692.00,2027-04-10,Fictional demo asset record 048; not a real company asset.
+PROIT-00049,DEMO-HP-00049,EliteBook 840 G11,HP,Pioneer Secure Tech,Bengaluru HQ,,available,2024-04-27,72071.00,2027-04-27,Fictional demo asset record 049; not a real company asset.
+PROIT-00050,DEMO-DEL-00050,OptiPlex Micro 7020,Dell,Evergreen Tech Partners,Chennai Office,EMP-0050,assigned,2024-05-14,73450.00,2027-05-14,Fictional demo asset record 050; not a real company asset.
+PROIT-00051,DEMO-LEN-00051,ThinkCentre M90q,Lenovo,Vertex Office Tech,Hyderabad Office,,in_repair,2024-05-31,74829.00,2027-05-31,Fictional demo asset record 051; not a real company asset.
+PROIT-00052,DEMO-HP-00052,Pro Mini 400 G9,HP,Redwood Business Devices,Bengaluru HQ,,retired,2024-06-17,76208.00,2027-06-17,Fictional demo asset record 052; not a real company asset.
+PROIT-00053,DEMO-DEL-00053,UltraSharp U2724D,Dell,BrightPath IT Services,Chennai Office,,available,2024-07-04,77587.00,2027-07-04,Fictional demo asset record 053; not a real company asset.
+PROIT-00054,DEMO-LEN-00054,ThinkVision T24i-30,Lenovo,BluePeak Systems,Hyderabad Office,EMP-0028,assigned,2024-07-21,78966.00,2027-07-21,Fictional demo asset record 054; not a real company asset.
+PROIT-00055,DEMO-SAM-00055,Samsung ViewFinity S6,Samsung,Summit Peripheral Co,Bengaluru HQ,,in_repair,2024-08-07,80345.00,2027-08-07,Fictional demo asset record 055; not a real company asset.
+PROIT-00056,DEMO-SAM-00056,Galaxy A55,Samsung,SilverOak Components,Chennai Office,,retired,2024-08-24,81724.00,2027-08-24,Fictional demo asset record 056; not a real company asset.
+PROIT-00057,DEMO-APP-00057,iPhone 15,Apple,Northstar IT Supplies,Hyderabad Office,,available,2024-09-10,83103.00,2027-09-10,Fictional demo asset record 057; not a real company asset.
+PROIT-00058,DEMO-CIS-00058,Catalyst 9200L,Cisco,Cloudline Networks,Bengaluru HQ,EMP-0006,assigned,2024-09-27,84482.00,2027-09-27,Fictional demo asset record 058; not a real company asset.
+PROIT-00059,DEMO-HP-00059,LaserJet Pro 4002,HP,Pioneer Secure Tech,Chennai Office,,in_repair,2024-10-14,85861.00,2027-10-14,Fictional demo asset record 059; not a real company asset.
+PROIT-00060,DEMO-DEL-00060,PowerEdge R360,Dell,Evergreen Tech Partners,Hyderabad Office,,retired,2024-10-31,87240.00,2027-10-31,Fictional demo asset record 060; not a real company asset.
+PROIT-00061,DEMO-DEL-00061,Latitude 5450,Dell,Vertex Office Tech,Bengaluru HQ,,available,2024-11-17,88619.00,2027-11-17,Fictional demo asset record 061; not a real company asset.
+PROIT-00062,DEMO-LEN-00062,ThinkPad T14 Gen 5,Lenovo,Redwood Business Devices,Chennai Office,EMP-0034,assigned,2024-12-04,89998.00,2027-12-04,Fictional demo asset record 062; not a real company asset.
+PROIT-00063,DEMO-APP-00063,MacBook Air 13,Apple,BrightPath IT Services,Hyderabad Office,,in_repair,2024-12-21,91377.00,2027-12-21,Fictional demo asset record 063; not a real company asset.
+PROIT-00064,DEMO-HP-00064,EliteBook 840 G11,HP,BluePeak Systems,Bengaluru HQ,,retired,2025-01-07,92756.00,2028-01-07,Fictional demo asset record 064; not a real company asset.
+PROIT-00065,DEMO-DEL-00065,OptiPlex Micro 7020,Dell,Summit Peripheral Co,Chennai Office,,available,2025-01-24,94135.00,2028-01-24,Fictional demo asset record 065; not a real company asset.
+PROIT-00066,DEMO-LEN-00066,ThinkCentre M90q,Lenovo,SilverOak Components,Hyderabad Office,EMP-0012,assigned,2025-02-10,95514.00,2028-02-10,Fictional demo asset record 066; not a real company asset.
+PROIT-00067,DEMO-HP-00067,Pro Mini 400 G9,HP,Northstar IT Supplies,Bengaluru HQ,,in_repair,2025-02-27,96893.00,2028-02-27,Fictional demo asset record 067; not a real company asset.
+PROIT-00068,DEMO-DEL-00068,UltraSharp U2724D,Dell,Cloudline Networks,Chennai Office,,retired,2025-03-16,98272.00,2028-03-15,Fictional demo asset record 068; not a real company asset.
+PROIT-00069,DEMO-LEN-00069,ThinkVision T24i-30,Lenovo,Pioneer Secure Tech,Hyderabad Office,,available,2025-04-02,99651.00,2028-04-01,Fictional demo asset record 069; not a real company asset.
+PROIT-00070,DEMO-SAM-00070,Samsung ViewFinity S6,Samsung,Evergreen Tech Partners,Bengaluru HQ,EMP-0020,assigned,2025-04-19,101030.00,2028-04-18,Fictional demo asset record 070; not a real company asset.
+PROIT-00071,DEMO-SAM-00071,Galaxy A55,Samsung,Vertex Office Tech,Chennai Office,,in_repair,2022-01-22,102409.00,2025-01-21,Fictional demo asset record 071; not a real company asset.
+PROIT-00072,DEMO-APP-00072,iPhone 15,Apple,Redwood Business Devices,Hyderabad Office,,retired,2022-02-08,103788.00,2025-02-07,Fictional demo asset record 072; not a real company asset.
+PROIT-00073,DEMO-CIS-00073,Catalyst 9200L,Cisco,BrightPath IT Services,Bengaluru HQ,,available,2022-02-25,105167.00,2025-02-24,Fictional demo asset record 073; not a real company asset.
+PROIT-00074,DEMO-HP-00074,LaserJet Pro 4002,HP,BluePeak Systems,Chennai Office,EMP-0018,assigned,2022-03-14,106546.00,2025-03-13,Fictional demo asset record 074; not a real company asset.
+PROIT-00075,DEMO-DEL-00075,PowerEdge R360,Dell,Summit Peripheral Co,Hyderabad Office,,in_repair,2022-03-31,107925.00,2025-03-30,Fictional demo asset record 075; not a real company asset.
+PROIT-00076,DEMO-DEL-00076,Latitude 5450,Dell,SilverOak Components,Bengaluru HQ,,retired,2022-04-17,109304.00,2025-04-16,Fictional demo asset record 076; not a real company asset.
+PROIT-00077,DEMO-LEN-00077,ThinkPad T14 Gen 5,Lenovo,Northstar IT Supplies,Chennai Office,,available,2022-05-04,110683.00,2025-05-03,Fictional demo asset record 077; not a real company asset.
+PROIT-00078,DEMO-APP-00078,MacBook Air 13,Apple,Cloudline Networks,Hyderabad Office,EMP-0046,assigned,2022-05-21,112062.00,2025-05-20,Fictional demo asset record 078; not a real company asset.
+PROIT-00079,DEMO-HP-00079,EliteBook 840 G11,HP,Pioneer Secure Tech,Bengaluru HQ,,in_repair,2022-06-07,113441.00,2025-06-06,Fictional demo asset record 079; not a real company asset.
+PROIT-00080,DEMO-DEL-00080,OptiPlex Micro 7020,Dell,Evergreen Tech Partners,Chennai Office,,retired,2022-06-24,114820.00,2025-06-23,Fictional demo asset record 080; not a real company asset.
+PROIT-00081,DEMO-LEN-00081,ThinkCentre M90q,Lenovo,Vertex Office Tech,Hyderabad Office,,available,2022-07-11,116199.00,2025-07-10,Fictional demo asset record 081; not a real company asset.
+PROIT-00082,DEMO-HP-00082,Pro Mini 400 G9,HP,Redwood Business Devices,Bengaluru HQ,EMP-0024,assigned,2022-07-28,117578.00,2025-07-27,Fictional demo asset record 082; not a real company asset.
+PROIT-00083,DEMO-DEL-00083,UltraSharp U2724D,Dell,BrightPath IT Services,Chennai Office,,in_repair,2022-08-14,118957.00,2025-08-13,Fictional demo asset record 083; not a real company asset.
+PROIT-00084,DEMO-LEN-00084,ThinkVision T24i-30,Lenovo,BluePeak Systems,Hyderabad Office,,retired,2022-08-31,120336.00,2025-08-30,Fictional demo asset record 084; not a real company asset.
+PROIT-00085,DEMO-SAM-00085,Samsung ViewFinity S6,Samsung,Summit Peripheral Co,Bengaluru HQ,,available,2022-09-17,121715.00,2025-09-16,Fictional demo asset record 085; not a real company asset.
+PROIT-00086,DEMO-SAM-00086,Galaxy A55,Samsung,SilverOak Components,Chennai Office,EMP-0002,assigned,2022-10-04,123094.00,2025-10-03,Fictional demo asset record 086; not a real company asset.
+PROIT-00087,DEMO-APP-00087,iPhone 15,Apple,Northstar IT Supplies,Hyderabad Office,,in_repair,2022-10-21,124473.00,2025-10-20,Fictional demo asset record 087; not a real company asset.
+PROIT-00088,DEMO-CIS-00088,Catalyst 9200L,Cisco,Cloudline Networks,Bengaluru HQ,,retired,2022-11-07,125852.00,2025-11-06,Fictional demo asset record 088; not a real company asset.
+PROIT-00089,DEMO-HP-00089,LaserJet Pro 4002,HP,Pioneer Secure Tech,Chennai Office,,available,2022-11-24,127231.00,2025-11-23,Fictional demo asset record 089; not a real company asset.
+PROIT-00090,DEMO-DEL-00090,PowerEdge R360,Dell,Evergreen Tech Partners,Hyderabad Office,EMP-0040,assigned,2022-12-11,128610.00,2025-12-10,Fictional demo asset record 090; not a real company asset.
+PROIT-00091,DEMO-DEL-00091,Latitude 5450,Dell,Vertex Office Tech,Bengaluru HQ,,in_repair,2022-12-28,129989.00,2025-12-27,Fictional demo asset record 091; not a real company asset.
+PROIT-00092,DEMO-LEN-00092,ThinkPad T14 Gen 5,Lenovo,Redwood Business Devices,Chennai Office,,retired,2023-01-14,131368.00,2026-01-13,Fictional demo asset record 092; not a real company asset.
+PROIT-00093,DEMO-APP-00093,MacBook Air 13,Apple,BrightPath IT Services,Hyderabad Office,,available,2023-01-31,132747.00,2026-01-30,Fictional demo asset record 093; not a real company asset.
+PROIT-00094,DEMO-HP-00094,EliteBook 840 G11,HP,BluePeak Systems,Bengaluru HQ,EMP-0008,assigned,2023-02-17,134126.00,2026-02-16,Fictional demo asset record 094; not a real company asset.
+PROIT-00095,DEMO-DEL-00095,OptiPlex Micro 7020,Dell,Summit Peripheral Co,Chennai Office,,in_repair,2023-03-06,135505.00,2026-03-05,Fictional demo asset record 095; not a real company asset.
+PROIT-00096,DEMO-LEN-00096,ThinkCentre M90q,Lenovo,SilverOak Components,Hyderabad Office,,retired,2023-03-23,136884.00,2026-03-22,Fictional demo asset record 096; not a real company asset.
+PROIT-00097,DEMO-HP-00097,Pro Mini 400 G9,HP,Northstar IT Supplies,Bengaluru HQ,,available,2023-04-09,138263.00,2026-04-08,Fictional demo asset record 097; not a real company asset.
+PROIT-00098,DEMO-DEL-00098,UltraSharp U2724D,Dell,Cloudline Networks,Chennai Office,EMP-0036,assigned,2023-04-26,139642.00,2026-04-25,Fictional demo asset record 098; not a real company asset.
+PROIT-00099,DEMO-LEN-00099,ThinkVision T24i-30,Lenovo,Pioneer Secure Tech,Hyderabad Office,,in_repair,2023-05-13,141021.00,2026-05-12,Fictional demo asset record 099; not a real company asset.
+PROIT-00100,DEMO-SAM-00100,Samsung ViewFinity S6,Samsung,Evergreen Tech Partners,Bengaluru HQ,,retired,2023-05-30,142400.00,2026-05-29,Fictional demo asset record 100; not a real company asset.

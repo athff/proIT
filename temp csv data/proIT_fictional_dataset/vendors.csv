@@ -1,0 +1,11 @@
+﻿company_name,contact_name,email,phone,website,address,notes,is_active
+Northstar IT Supplies,Aarav Mehta,aarav.mehta@northstar.example,+91-80000-10001,https://northstar.example,"12 Fictional Market Road, Bengaluru, Karnataka, India",Fictional supplier for laptops and accessories,true
+BluePeak Systems,Diya Nair,diya.nair@bluepeak.example,+91-80000-10002,https://bluepeak.example,"24 Sample Industrial Estate, Chennai, Tamil Nadu, India",Fictional supplier for desktop systems,true
+Vertex Office Tech,Kabir Rao,kabir.rao@vertexoffice.example,+91-80000-10003,https://vertexoffice.example,"9 Example Park, Hyderabad, Telangana, India",Fictional office technology supplier,true
+Cloudline Networks,Anaya Iyer,anaya.iyer@cloudline.example,+91-80000-10004,https://cloudline.example,"31 Imaginary Tech Road, Bengaluru, Karnataka, India",Fictional networking equipment supplier,true
+Summit Peripheral Co,Vivaan Shah,vivaan.shah@summitperipheral.example,+91-80000-10005,https://summitperipheral.example,"6 Sample Trade Centre, Chennai, Tamil Nadu, India",Fictional peripherals supplier,true
+Redwood Business Devices,Ishita Das,ishita.das@redwooddevices.example,+91-80000-10006,https://redwooddevices.example,"55 Fictional Avenue, Hyderabad, Telangana, India",Fictional device reseller,true
+Pioneer Secure Tech,Arjun Pillai,arjun.pillai@pioneersecure.example,+91-80000-10007,https://pioneersecure.example,"14 Demo Layout, Bengaluru, Karnataka, India",Fictional security and infrastructure supplier,true
+SilverOak Components,Mira Kulkarni,mira.kulkarni@silveroak.example,+91-80000-10008,https://silveroak.example,"28 Test Industrial Road, Chennai, Tamil Nadu, India",Fictional components supplier,true
+BrightPath IT Services,Reyansh Menon,reyansh.menon@brightpath.example,+91-80000-10009,https://brightpath.example,"3 Mock Business Plaza, Hyderabad, Telangana, India",Fictional IT service and warranty partner,true
+Evergreen Tech Partners,Saanvi Kapoor,saanvi.kapoor@evergreenpartners.example,+91-80000-10010,https://evergreenpartners.example,"71 Example Corporate Road, Bengaluru, Karnataka, India",Fictional general IT procurement partner,true

@@ -1,0 +1,16 @@
+﻿name,manufacturer,category,is_active
+Latitude 5450,Dell,Laptop,true
+ThinkPad T14 Gen 5,Lenovo,Laptop,true
+MacBook Air 13,Apple,Laptop,true
+EliteBook 840 G11,HP,Laptop,true
+OptiPlex Micro 7020,Dell,Desktop,true
+ThinkCentre M90q,Lenovo,Desktop,true
+Pro Mini 400 G9,HP,Desktop,true
+UltraSharp U2724D,Dell,Monitor,true
+ThinkVision T24i-30,Lenovo,Monitor,true
+Samsung ViewFinity S6,Samsung,Monitor,true
+Galaxy A55,Samsung,Mobile Device,true
+iPhone 15,Apple,Mobile Device,true
+Catalyst 9200L,Cisco,Network Equipment,true
+LaserJet Pro 4002,HP,Printer,true
+PowerEdge R360,Dell,Server,true

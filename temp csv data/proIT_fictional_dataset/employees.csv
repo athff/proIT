@@ -1,0 +1,51 @@
+﻿employee_id,first_name,last_name,email,department,location,is_active
+EMP-0001,Aarav,Nair,employee001@carepoint-demo.example,Human Resources,Bengaluru HQ,true
+EMP-0002,Aditi,Reddy,employee002@carepoint-demo.example,Sales,Chennai Office,true
+EMP-0003,Advik,Das,employee003@carepoint-demo.example,Research and Development,Hyderabad Office,true
+EMP-0004,Ananya,Kulkarni,employee004@carepoint-demo.example,Human Resources,Bengaluru HQ,true
+EMP-0005,Arjun,Gupta,employee005@carepoint-demo.example,Sales,Chennai Office,true
+EMP-0006,Avni,Shah,employee006@carepoint-demo.example,Research and Development,Hyderabad Office,true
+EMP-0007,Dhruv,Sharma,employee007@carepoint-demo.example,Human Resources,Bengaluru HQ,true
+EMP-0008,Diya,Iyer,employee008@carepoint-demo.example,Sales,Chennai Office,true
+EMP-0009,Ishaan,Mehta,employee009@carepoint-demo.example,Research and Development,Hyderabad Office,true
+EMP-0010,Isha,Menon,employee010@carepoint-demo.example,Human Resources,Bengaluru HQ,true
+EMP-0011,Kabir,Joshi,employee011@carepoint-demo.example,Sales,Chennai Office,true
+EMP-0012,Kavya,Bose,employee012@carepoint-demo.example,Research and Development,Hyderabad Office,true
+EMP-0013,Krish,Khan,employee013@carepoint-demo.example,Human Resources,Bengaluru HQ,true
+EMP-0014,Meera,Rao,employee014@carepoint-demo.example,Sales,Chennai Office,true
+EMP-0015,Mira,Patel,employee015@carepoint-demo.example,Research and Development,Hyderabad Office,true
+EMP-0016,Neel,Kapoor,employee016@carepoint-demo.example,Human Resources,Bengaluru HQ,true
+EMP-0017,Nisha,Pillai,employee017@carepoint-demo.example,Sales,Chennai Office,true
+EMP-0018,Pranav,Verma,employee018@carepoint-demo.example,Research and Development,Hyderabad Office,true
+EMP-0019,Rhea,Malhotra,employee019@carepoint-demo.example,Human Resources,Bengaluru HQ,true
+EMP-0020,Rohan,Mishra,employee020@carepoint-demo.example,Sales,Chennai Office,true
+EMP-0021,Saanvi,Nair,employee021@carepoint-demo.example,Research and Development,Hyderabad Office,true
+EMP-0022,Sai,Reddy,employee022@carepoint-demo.example,Human Resources,Bengaluru HQ,true
+EMP-0023,Samaira,Das,employee023@carepoint-demo.example,Sales,Chennai Office,true
+EMP-0024,Tanvi,Kulkarni,employee024@carepoint-demo.example,Research and Development,Hyderabad Office,true
+EMP-0025,Vivaan,Gupta,employee025@carepoint-demo.example,Human Resources,Bengaluru HQ,true
+EMP-0026,Aarav,Shah,employee026@carepoint-demo.example,Sales,Chennai Office,true
+EMP-0027,Aditi,Sharma,employee027@carepoint-demo.example,Research and Development,Hyderabad Office,true
+EMP-0028,Advik,Iyer,employee028@carepoint-demo.example,Human Resources,Bengaluru HQ,true
+EMP-0029,Ananya,Mehta,employee029@carepoint-demo.example,Sales,Chennai Office,true
+EMP-0030,Arjun,Menon,employee030@carepoint-demo.example,Research and Development,Hyderabad Office,true
+EMP-0031,Avni,Joshi,employee031@carepoint-demo.example,Human Resources,Bengaluru HQ,true
+EMP-0032,Dhruv,Bose,employee032@carepoint-demo.example,Sales,Chennai Office,true
+EMP-0033,Diya,Khan,employee033@carepoint-demo.example,Research and Development,Hyderabad Office,true
+EMP-0034,Ishaan,Rao,employee034@carepoint-demo.example,Human Resources,Bengaluru HQ,true
+EMP-0035,Isha,Patel,employee035@carepoint-demo.example,Sales,Chennai Office,true
+EMP-0036,Kabir,Kapoor,employee036@carepoint-demo.example,Research and Development,Hyderabad Office,true
+EMP-0037,Kavya,Pillai,employee037@carepoint-demo.example,Human Resources,Bengaluru HQ,true
+EMP-0038,Krish,Verma,employee038@carepoint-demo.example,Sales,Chennai Office,true
+EMP-0039,Meera,Malhotra,employee039@carepoint-demo.example,Research and Development,Hyderabad Office,true
+EMP-0040,Mira,Mishra,employee040@carepoint-demo.example,Human Resources,Bengaluru HQ,true
+EMP-0041,Neel,Nair,employee041@carepoint-demo.example,Sales,Chennai Office,true
+EMP-0042,Nisha,Reddy,employee042@carepoint-demo.example,Research and Development,Hyderabad Office,true
+EMP-0043,Pranav,Das,employee043@carepoint-demo.example,Human Resources,Bengaluru HQ,true
+EMP-0044,Rhea,Kulkarni,employee044@carepoint-demo.example,Sales,Chennai Office,true
+EMP-0045,Rohan,Gupta,employee045@carepoint-demo.example,Research and Development,Hyderabad Office,true
+EMP-0046,Saanvi,Shah,employee046@carepoint-demo.example,Human Resources,Bengaluru HQ,true
+EMP-0047,Sai,Sharma,employee047@carepoint-demo.example,Sales,Chennai Office,true
+EMP-0048,Samaira,Iyer,employee048@carepoint-demo.example,Research and Development,Hyderabad Office,true
+EMP-0049,Tanvi,Mehta,employee049@carepoint-demo.example,Human Resources,Bengaluru HQ,true
+EMP-0050,Vivaan,Menon,employee050@carepoint-demo.example,Sales,Chennai Office,true

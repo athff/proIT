@@ -1,0 +1,9 @@
+﻿name,description,is_active
+Laptop,Portable computers for employees,true
+Desktop,Desktop computers and workstations,true
+Monitor,External displays,true
+Mobile Device,Company-managed smartphones and tablets,true
+Network Equipment,"Switches, routers, and wireless access points",true
+Printer,Office printers and scanners,true
+Peripheral,"Keyboards, mice, docks, and headsets",true
+Server,Rack and tower servers,true

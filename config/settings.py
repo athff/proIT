@@ -29,7 +29,7 @@ load_dotenv(BASE_DIR / ".env", override=False)
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
-ENVIRONMENT = os.getenv("DJANGO_ENV", "development").strip().lower()
+ENVIRONMENT = os.getenv("DJANGO_ENV", "production").strip().lower()
 
 
 def _env_bool(name: str, default: bool) -> bool:

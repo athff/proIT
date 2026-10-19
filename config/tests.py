@@ -142,6 +142,13 @@ class AuthenticationTests(TestCase):
 
     def test_password_change_updates_password(self):
         self.client.force_login(self.user)
+        page = self.client.get(reverse("password_change"))
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, "Change password")
+        self.assertContains(page, "password.css")
+        self.assertContains(page, 'data-password-toggle="id_old_password"')
+        self.assertContains(page, 'data-password-toggle="id_new_password1"')
+        self.assertContains(page, 'data-password-toggle="id_new_password2"')
         response = self.client.post(
             reverse("password_change"),
             {

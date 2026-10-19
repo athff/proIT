@@ -254,6 +254,15 @@ class AuthenticationTests(TestCase):
         self.assertEqual(settings["OPTIONS"]["sslmode"], "require")
         self.assertTrue(settings["CONN_HEALTH_CHECKS"])
 
+    def test_database_url_accepts_pasted_vercel_value(self):
+        settings = _database_settings(
+            'DATABASE_URL="postgresql://user:password@db.example/neondb"'
+        )
+
+        self.assertEqual(settings["NAME"], "neondb")
+        self.assertEqual(settings["HOST"], "db.example")
+        self.assertEqual(settings["OPTIONS"]["sslmode"], "require")
+
     def test_allowed_hosts_include_vercel_runtime_hostnames(self):
         with patch.dict(
             os.environ,

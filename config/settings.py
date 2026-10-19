@@ -186,6 +186,13 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 def _database_settings(database_url: str | None) -> dict:
     """Build database settings without exposing credentials in application code."""
+    database_url = (database_url or "").strip()
+    if database_url.startswith("DATABASE_URL="):
+        database_url = database_url.split("=", 1)[1].strip()
+    if len(database_url) >= 2 and database_url[0] == database_url[-1]:
+        if database_url[0] in {'"', "'"}:
+            database_url = database_url[1:-1].strip()
+
     if not database_url or database_url.startswith("sqlite"):
         return {
             "ENGINE": "django.db.backends.sqlite3",
@@ -193,12 +200,12 @@ def _database_settings(database_url: str | None) -> dict:
         }
 
     parsed = urlparse(database_url)
-#    if parsed.scheme not in {"postgres", "postgresql"}:
-#        raise ImproperlyConfigured(
-#            "DATABASE_URL must use sqlite, postgres, or postgresql."
-#        )
-#    if not parsed.hostname or not parsed.path or parsed.path == "/":
-#        raise ImproperlyConfigured("DATABASE_URL must include a database name.")
+    if parsed.scheme not in {"postgres", "postgresql"}:
+        raise ImproperlyConfigured(
+            "DATABASE_URL must use sqlite, postgres, or postgresql."
+        )
+    if not parsed.hostname or not parsed.path or parsed.path == "/":
+        raise ImproperlyConfigured("DATABASE_URL must include a database name.")
 
     query = dict(parse_qsl(parsed.query, keep_blank_values=True))
     query.setdefault("sslmode", "require")

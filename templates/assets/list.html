@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Assets | proIT{% endblock %}
+{% block extra_styles %}
+<style>
+    .asset-heading { display:flex; justify-content:space-between; align-items:end; gap:20px; margin-bottom:24px; }
+    .asset-heading h1 { margin-bottom:5px; }
+    .primary-button, .secondary-button, .danger-button { display:inline-flex; align-items:center; justify-content:center; min-height:40px; padding:0 16px; border:0; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; }
+    .primary-button { background:var(--blue); color:#fff; }
+    .secondary-button { background:#fff; border:1px solid var(--line); color:var(--ink); }
+    .danger-button { background:#fff0f0; color:#bd4444; }
+    .filter-panel { padding:16px; margin-bottom:20px; }
+    .filter-form { display:grid; grid-template-columns:minmax(180px,2fr) repeat(4,minmax(130px,1fr)) auto; gap:10px; align-items:end; }
+    .field-label { display:block; margin-bottom:6px; color:var(--muted); font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; }
+    .filter-form input, .filter-form select { width:100%; height:40px; padding:0 11px; border:1px solid var(--line); border-radius:7px; background:#fbfcfe; color:var(--ink); font-size:12px; }
+    .asset-table th { white-space:nowrap; }
+    .asset-table td { vertical-align:middle; }
+    .table-actions { display:flex; justify-content:flex-end; gap:8px; }
+    .table-actions a { color:var(--blue); font-size:11px; font-weight:700; }
+    .pagination { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:18px; color:var(--muted); font-size:12px; }
+    .pagination-links { display:flex; gap:6px; }
+    .pagination-links a, .pagination-links span { padding:7px 10px; border:1px solid var(--line); border-radius:6px; }
+    .pagination-links a { color:var(--blue); background:#fff; }
+    .pagination-links span { background:var(--blue); color:#fff; border-color:var(--blue); }
+    .asset-count { color:var(--muted); font-size:12px; }
+    @media (max-width:900px) { .filter-form { grid-template-columns:repeat(2,1fr); } .filter-form > :first-child { grid-column:1/-1; } }
+    @media (max-width:560px) { .asset-heading { align-items:start; flex-direction:column; } .filter-form { grid-template-columns:1fr; } .filter-form > :first-child { grid-column:auto; } .pagination { align-items:start; flex-direction:column; } }
+</style>
+{% endblock %}
+{% block content %}
+<section class="asset-heading">
+    <div><div class="eyebrow">Workspace</div><h1>Assets</h1><p class="subtle">Track, assign, and maintain your IT inventory.</p></div>
+    <div class="detail-actions">{% if can_edit %}<a class="secondary-button" href="{% url 'assets:assign' %}">Assign asset</a>{% endif %}{% if can_create %}<a class="primary-button" href="{% url 'assets:create' %}">+ Add asset</a>{% endif %}</div>
+</section>
+
+{% if messages %}{% for message in messages %}<div class="notice {{ message.tags }}">{{ message }}</div>{% endfor %}{% endif %}
+
+<section class="panel filter-panel">
+    <form class="filter-form" method="get">
+        <div><label class="field-label" for="asset-search-field">Search</label><input id="asset-search-field" name="q" value="{{ filters.q }}" placeholder="Tag, serial, model, employee"></div>
+        <div><label class="field-label" for="asset-status">Status</label><select id="asset-status" name="status"><option value="">All statuses</option>{% for value,label in status_choices %}<option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+        <div><label class="field-label" for="asset-category">Category</label><select id="asset-category" name="category"><option value="">All categories</option>{% for item in categories %}<option value="{{ item.pk }}" {% if filters.category == item.pk|stringformat:"s" %}selected{% endif %}>{{ item.name }}</option>{% endfor %}</select></div>
+        <div><label class="field-label" for="asset-location">Location</label><select id="asset-location" name="location"><option value="">All locations</option>{% for item in locations %}<option value="{{ item.pk }}" {% if filters.location == item.pk|stringformat:"s" %}selected{% endif %}>{{ item.name }}</option>{% endfor %}</select></div>
+        <div><label class="field-label" for="asset-assignment">Assignment</label><select id="asset-assignment" name="assignment"><option value="">All assignments</option><option value="assigned" {% if filters.assignment == "assigned" %}selected{% endif %}>Assigned</option><option value="unassigned" {% if filters.assignment == "unassigned" %}selected{% endif %}>Unassigned</option></select></div>
+        <button class="primary-button" type="submit">Filter</button>
+    </form>
+</section>
+
+<section class="panel">
+    <div class="panel-header"><h2>Inventory</h2><span class="asset-count">{{ page_obj.paginator.count }} asset{{ page_obj.paginator.count|pluralize }}</span></div>
+    {% if assets %}
+    <div class="table-wrap"><table class="asset-table"><thead><tr><th>Asset tag</th><th>Model</th><th>Serial number</th><th>Status</th><th>Assigned employee</th><th>Location</th><th>Purchase date</th><th></th></tr></thead><tbody>
+    {% for asset in assets %}<tr data-searchable><td><a class="asset-id" href="{% url 'assets:detail' asset.pk %}">{{ asset.asset_tag }}</a></td><td><strong>{{ asset.model.name }}</strong><br><span class="asset-model">{{ asset.model.manufacturer.name }}</span></td><td>{{ asset.serial_number }}</td><td><span class="status-pill {{ asset.status }}">{{ asset.get_status_display }}</span></td><td>{% if asset.assigned_employee %}{{ asset.assigned_employee.full_name }}{% else %}<span class="asset-model">Unassigned</span>{% endif %}</td><td>{% if asset.location %}{{ asset.location.name }}{% else %}<span class="asset-model">Not set</span>{% endif %}</td><td>{{ asset.purchase_date|date:"M j, Y"|default:"—" }}</td><td class="table-actions"><a href="{% url 'assets:detail' asset.pk %}">View</a>{% if can_edit %}<a href="{% url 'assets:update' asset.pk %}">Edit</a>{% endif %}</td></tr>{% endfor %}
+    </tbody></table></div>
+    <div class="pagination"><span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span><div class="pagination-links">{% if page_obj.has_previous %}<a href="?{% querystring page=page_obj.previous_page_number %}">Previous</a>{% endif %}<span>{{ page_obj.number }}</span>{% if page_obj.has_next %}<a href="?{% querystring page=page_obj.next_page_number %}">Next</a>{% endif %}</div></div>
+    {% else %}<div class="empty"><strong>No assets found.</strong><br>Try changing your filters or add your first asset.</div>{% endif %}
+</section>
+{% endblock %}

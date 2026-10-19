@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Signed out | proIT{% endblock %}
+{% block content %}
+<section class="card">
+    <h1>You are signed out</h1>
+    <p class="muted">Your proIT session has ended.</p>
+    <a class="button" href="{% url 'login' %}">Sign in again</a>
+</section>
+{% endblock %}

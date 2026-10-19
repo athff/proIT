@@ -1,0 +1,32 @@
+{% load static i18n %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block head_title %}Authentication{% endblock %} | proIT</title>
+    <link rel="stylesheet" href="{% static 'css/oauth.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <main class="oauth-page">
+        <div class="oauth-shell">
+            <div class="oauth-brand">
+                <a href="{% url 'login' %}" aria-label="Return to proIT sign in">
+                    <img src="{% static 'image/proit-logo.png' %}" alt="proIT">
+                </a>
+            </div>
+            <section class="oauth-card" aria-labelledby="oauth-heading">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="oauth-message" role="alert">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+                {% block content %}{% endblock %}
+            </section>
+            <p class="oauth-footer">Secure access to your proIT workspace</p>
+        </div>
+    </main>
+    {% block extra_body %}{% endblock %}
+</body>
+</html>

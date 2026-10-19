@@ -1,0 +1,8 @@
+{% extends "socialaccount/base_entrance.html" %}
+{% load i18n allauth %}
+{% block head_title %}{% trans "Sign-in error" %}{% endblock %}
+{% block content %}
+    {% element h1 %}{% trans "We couldn't sign you in" %}{% endelement %}
+    {% element p %}{% trans "Google sign-in could not be completed. Please try again or use your proIT password." %}{% endelement %}
+    <p class="oauth-secondary"><a href="{% url 'login' %}">{% trans "Return to sign in" %}</a></p>
+{% endblock content %}

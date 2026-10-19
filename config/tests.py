@@ -1,0 +1,323 @@
+"""Authentication and dashboard tests."""
+
+import os
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
+from django.core import mail
+from django.core.exceptions import ImproperlyConfigured
+from django.test import TestCase, override_settings
+from django.urls import reverse
+from django.template.loader import get_template
+from unittest.mock import patch
+
+from assets.models import Asset, AssetModel, Category, Manufacturer
+from dataio.services.authorization import VIEWER, configure_role_groups
+from people.models import Employee
+from vendors.models import Vendor
+from config.settings import (
+    _security_settings,
+    _static_storage_backend,
+    validate_production_configuration,
+)
+
+
+class AuthenticationTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="operator",
+            email="operator@example.com",
+            password="Initial-password-123",
+        )
+
+    def test_login_page_and_login_redirect(self):
+        response = self.client.get(reverse("login"))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'aria-label="Main navigation"')
+        self.assertContains(response, reverse("google_login"))
+        self.assertContains(response, "Continue with Google")
+        self.assertContains(response, reverse("signup"))
+        response = self.client.post(
+            reverse("login"),
+            {"username": "operator", "password": "Initial-password-123"},
+        )
+        self.assertRedirects(response, reverse("dashboard"))
+
+    def test_signup_page_renders_registration_fields(self):
+        response = self.client.get(reverse("signup"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Create your account")
+        for field_name in ("first_name", "last_name", "username", "email", "password1", "password2"):
+            self.assertContains(response, f'name="{field_name}"')
+        self.assertContains(response, "signup.css")
+
+    def test_signup_page_offers_google_sign_in(self):
+        response = self.client.get(reverse("signup"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, reverse("google_login"))
+        self.assertContains(response, "Continue with Google")
+
+    def test_allauth_google_outcome_pages_use_proit_layout(self):
+        for route_name, heading in (
+            ("socialaccount_login_cancelled", "Sign-in cancelled"),
+            ("socialaccount_login_error", "We couldn't sign you in"),
+        ):
+            response = self.client.get(reverse(route_name))
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, heading)
+            self.assertContains(response, "/static/css/oauth.css")
+            self.assertContains(response, "/static/image/proit-logo.png")
+
+    def test_allauth_templates_are_overridden_by_project_templates(self):
+        for template_name in (
+            "allauth/layouts/entrance.html",
+            "socialaccount/login.html",
+            "socialaccount/signup.html",
+            "socialaccount/authentication_error.html",
+            "socialaccount/login_cancelled.html",
+            "socialaccount/login_redirect.html",
+        ):
+            template = get_template(template_name)
+            self.assertIn("E:\\proIT\\templates", template.origin.name)
+
+    def test_signup_page_creates_standard_user_and_redirects_to_dashboard(self):
+        response = self.client.post(
+            reverse("signup"),
+            {
+                "first_name": "New",
+                "last_name": "Operator",
+                "username": "new-operator",
+                "email": "new-operator@example.com",
+                "password1": "New-secure-password-123",
+                "password2": "New-secure-password-123",
+            },
+        )
+        self.assertRedirects(response, reverse("dashboard"))
+        user = get_user_model().objects.get(username="new-operator")
+        self.assertTrue(user.check_password("New-secure-password-123"))
+        self.assertEqual(user.first_name, "New")
+        self.assertEqual(user.last_name, "Operator")
+        self.assertFalse(user.is_staff)
+        self.assertFalse(user.is_superuser)
+        self.assertEqual(user.groups.count(), 0)
+        self.assertTrue(response.wsgi_request.user.is_authenticated)
+
+    def test_signup_rejects_invalid_passwords(self):
+        response = self.client.post(
+            reverse("signup"),
+            {
+                "first_name": "New",
+                "last_name": "Operator",
+                "username": "new-operator",
+                "email": "new-operator@example.com",
+                "password1": "short",
+                "password2": "different",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("password2", response.context["form"].errors)
+
+    def test_dashboard_redirects_anonymous_users_to_login(self):
+        response = self.client.get(reverse("dashboard"))
+        self.assertRedirects(
+            response,
+            f"{reverse('login')}?next={reverse('dashboard')}",
+        )
+
+    def test_authenticated_user_can_access_dashboard(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("dashboard"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Dashboard")
+
+    def test_logout_requires_post_and_csrf(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("logout"))
+        self.assertEqual(response.status_code, 405)
+        response = self.client.post(reverse("logout"))
+        self.assertRedirects(response, reverse("login"))
+        self.assertFalse(response.wsgi_request.user.is_authenticated)
+
+    def test_password_change_updates_password(self):
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("password_change"),
+            {
+                "old_password": "Initial-password-123",
+                "new_password1": "Replacement-password-456",
+                "new_password2": "Replacement-password-456",
+            },
+        )
+        self.assertRedirects(response, reverse("password_change_done"))
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password("Replacement-password-456"))
+
+    @override_settings(
+        MAILERS={"default": {"BACKEND": "django.core.mail.backends.locmem.EmailBackend"}}
+    )
+    def test_password_reset_sends_email_for_known_address(self):
+        response = self.client.post(
+            reverse("password_reset"),
+            {"email": "operator@example.com"},
+        )
+        self.assertRedirects(response, reverse("password_reset_done"))
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("password reset", mail.outbox[0].body.lower())
+
+    @override_settings(
+        MAILERS={"default": {"BACKEND": "django.core.mail.backends.locmem.EmailBackend"}}
+    )
+    def test_password_reset_does_not_reveal_unknown_address(self):
+        response = self.client.post(
+            reverse("password_reset"),
+            {"email": "unknown@example.com"},
+        )
+        self.assertRedirects(response, reverse("password_reset_done"))
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_dataio_redirects_anonymous_users_to_login(self):
+        response = self.client.get(
+            reverse("csv-template", args=["departments"]),
+        )
+        self.assertRedirects(
+            response,
+            f"{reverse('login')}?next={reverse('csv-template', args=['departments'])}",
+        )
+
+    def test_production_configuration_rejects_insecure_defaults(self):
+        with self.assertRaises(ImproperlyConfigured):
+            validate_production_configuration(
+                environment="production",
+                secret_key="",
+                debug=True,
+                allowed_hosts=[],
+                email_backend="django.core.mail.backends.console.EmailBackend",
+            )
+
+    def test_development_security_settings_remain_local(self):
+        with patch.dict(
+            os.environ,
+            {},
+            clear=True,
+        ):
+            settings = _security_settings("development")
+        self.assertFalse(settings["SECURE_SSL_REDIRECT"])
+        self.assertFalse(settings["SESSION_COOKIE_SECURE"])
+        self.assertFalse(settings["CSRF_COOKIE_SECURE"])
+        self.assertEqual(settings["SECURE_HSTS_SECONDS"], 0)
+
+    def test_production_security_settings_default_secure_except_hsts(self):
+        with patch.dict(
+            os.environ,
+            {},
+            clear=True,
+        ):
+            settings = _security_settings("production")
+        self.assertTrue(settings["SECURE_SSL_REDIRECT"])
+        self.assertTrue(settings["SESSION_COOKIE_SECURE"])
+        self.assertTrue(settings["CSRF_COOKIE_SECURE"])
+        self.assertEqual(settings["SECURE_HSTS_SECONDS"], 0)
+
+    def test_static_storage_uses_manifest_backend_only_in_production(self):
+        from config import settings as project_settings
+
+        self.assertEqual(
+            _static_storage_backend("development"),
+            "django.contrib.staticfiles.storage.StaticFilesStorage",
+        )
+        self.assertEqual(
+            _static_storage_backend("production"),
+            "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        )
+        self.assertEqual(
+            project_settings.STORAGES["staticfiles"]["BACKEND"],
+            _static_storage_backend(project_settings.ENVIRONMENT),
+        )
+        self.assertNotEqual(project_settings.STATIC_ROOT, project_settings.BASE_DIR / "static")
+
+    def test_production_configuration_accepts_explicit_secure_values(self):
+        validate_production_configuration(
+            environment="production",
+            secret_key="a-long-production-secret",
+            debug=False,
+            allowed_hosts=["proit.example.com"],
+            email_backend="django.core.mail.backends.smtp.EmailBackend",
+        )
+
+
+class DashboardDataTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="dashboard-user",
+            password="Initial-password-123",
+        )
+        self.client.force_login(self.user)
+
+    def test_dashboard_uses_real_metrics_and_status_counts(self):
+        category = Category.objects.create(name="Laptops")
+        manufacturer = Manufacturer.objects.create(name="Acme")
+        asset_model = AssetModel.objects.create(
+            name="Pro 14",
+            manufacturer=manufacturer,
+            category=category,
+        )
+        Employee.objects.create(
+            employee_id="EMP-DASH-1",
+            first_name="Ada",
+            last_name="Lovelace",
+            email="dash@example.com",
+        )
+        Vendor.objects.create(company_name="Dashboard Vendor")
+        Asset.objects.create(
+            asset_tag="DASH-1",
+            serial_number="DASH-SN-1",
+            model=asset_model,
+            status=Asset.Status.AVAILABLE,
+        )
+        Asset.objects.create(
+            asset_tag="DASH-2",
+            serial_number="DASH-SN-2",
+            model=asset_model,
+            status=Asset.Status.MAINTENANCE,
+        )
+
+        response = self.client.get(reverse("dashboard"))
+
+        self.assertEqual(response.context["asset_count"], 2)
+        self.assertEqual(response.context["employee_count"], 1)
+        self.assertEqual(response.context["vendor_count"], 1)
+        self.assertEqual(response.context["available_count"], 1)
+        self.assertEqual(response.context["maintenance_count"], 1)
+        self.assertContains(response, "DASH-1")
+        self.assertContains(response, "DASH-2")
+
+    def test_dashboard_empty_state_is_graceful(self):
+        response = self.client.get(reverse("dashboard"))
+
+        self.assertEqual(response.context["asset_count"], 0)
+        self.assertContains(response, "No assets have been added yet.")
+        self.assertContains(response, "No recent assets to display.")
+        self.assertContains(response, "Activity will appear as assets are added.")
+
+    def test_viewer_actions_follow_rbac(self):
+        configure_role_groups()
+        self.user.groups.add(Group.objects.get(name=VIEWER))
+
+        response = self.client.get(reverse("dashboard"))
+
+        self.assertTrue(response.context["can_export_assets"])
+        self.assertFalse(response.context["can_import_assets"])
+        self.assertContains(response, "Export assets")
+        self.assertNotContains(response, "Import assets")
+
+    def test_summary_cards_link_to_authorized_destinations(self):
+        self.user.is_superuser = True
+        self.user.save(update_fields=["is_superuser"])
+
+        response = self.client.get(reverse("dashboard"))
+        content = response.content.decode()
+
+        self.assertIn('href="/assets/"', content)
+        self.assertIn('href="/people/employees/"', content)
+        self.assertIn('href="/vendors/"', content)
+        self.assertIn('href="/assets/?status=available"', content)
+        self.assertIn('href="/assets/?status=maintenance"', content)

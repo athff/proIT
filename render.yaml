@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: proit
+    runtime: python
+    buildCommand: bash build.sh
+    startCommand: gunicorn config.wsgi:application
+    healthCheckPath: /accounts/login/
+    envVars:
+      - key: DJANGO_ENV
+        value: production
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        sync: false
+      - key: ALLOWED_HOSTS
+        sync: false
+      - key: PROIT_EMAIL_BACKEND
+        sync: false
+      - key: CSRF_TRUSTED_ORIGINS
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false

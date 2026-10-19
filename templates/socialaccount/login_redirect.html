@@ -1,0 +1,28 @@
+{% load static i18n allauth %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% trans "Continue to ProIT" %}</title>
+    <meta http-equiv="refresh" content="0;URL='{{ redirect_to }}'">
+    <link rel="stylesheet" href="{% static 'css/oauth.css' %}">
+</head>
+<body>
+    <main class="oauth-page">
+        <div class="oauth-shell">
+            <div class="oauth-brand">
+                <a href="{% url 'login' %}" aria-label="Return to proIT sign in">
+                    <img src="{% static 'image/proit-logo.png' %}" alt="proIT">
+                </a>
+            </div>
+            <section class="oauth-card oauth-redirect-card" aria-labelledby="oauth-heading">
+                <h1 id="oauth-heading">{% trans "Continue to ProIT" %}</h1>
+                <p>{% trans "Connecting securely to Google. If you are not redirected automatically, use the button below." %}</p>
+                <a class="oauth-redirect-button" href="{{ redirect_to }}">{% trans "Continue with Google" %}</a>
+            </section>
+            <p class="oauth-footer">{% trans "Secure access to your proIT workspace" %}</p>
+        </div>
+    </main>
+</body>
+</html>

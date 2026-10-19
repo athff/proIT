@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load static socialaccount %}
+{% block title %}Sign in | proIT{% endblock %}
+{% block extra_styles %}<link rel="stylesheet" href="{% static 'css/signin.css' %}">{% endblock %}
+{% block content %}
+<div class="signin-page">
+    <section class="signin-panel" aria-labelledby="signin-heading">
+        <div class="signin-brand">
+            <img src="{% static 'image/proit-logo.png' %}" alt="proIT - IT Asset Management">
+        </div>
+        <div class="signin-copy">
+            <span class="signin-eyebrow">IT asset management</span>
+            <h1 id="signin-heading">Welcome back</h1>
+            <p>Sign in to continue managing your IT workspace.</p>
+        </div>
+        {% if form.errors %}
+        <div class="signin-alert" role="alert">Your email or password did not match. Please try again.</div>
+        {% endif %}
+        <form class="signin-form" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+            {{ form.non_field_errors }}
+            <div class="signin-field">
+                <label for="{{ form.username.id_for_label }}">Email address or username</label>
+                {{ form.username }}
+                {{ form.username.errors }}
+            </div>
+            <div class="signin-field">
+                <div class="signin-label-row">
+                    <label for="{{ form.password.id_for_label }}">Password</label>
+                    <a href="{% url 'password_reset' %}">Forgot password?</a>
+                </div>
+                {{ form.password }}
+                {{ form.password.errors }}
+            </div>
+            <label class="signin-remember">
+                <input type="checkbox" name="remember_me">
+                <span>Remember me</span>
+            </label>
+            <button class="signin-submit" type="submit">Sign in</button>
+        </form>
+        <div class="signin-divider"><span>or continue with</span></div>
+        <a class="signin-google" href="{% provider_login_url 'google' %}" aria-label="Continue with Google">
+            <span class="google-mark" aria-hidden="true">G</span>
+            <span>Sign in with Google</span>
+        </a>
+        <p class="signin-create">Don't have an account? <a href="{% url 'signup' %}">Create account</a></p>
+    </section>
+
+    <aside class="signin-preview" aria-label="proIT dashboard preview">
+        <div class="preview-glow"></div>
+        <div class="preview-intro">
+            <span class="signin-eyebrow">One clear view</span>
+            <h2>Your IT, in control.</h2>
+            <p>Track assets, people, vendors, and operational status from one trusted workspace.</p>
+        </div>
+        <div class="preview-window">
+            <div class="preview-window-top">
+                <span class="preview-dot"></span><span class="preview-dot"></span><span class="preview-dot"></span>
+                <span class="preview-window-title">Workspace overview</span>
+            </div>
+            <div class="preview-body">
+                <div class="preview-sidebar">
+                    <div class="preview-mini-logo">p</div>
+                    <span class="preview-nav active"></span><span class="preview-nav"></span><span class="preview-nav"></span><span class="preview-nav"></span>
+                </div>
+                <div class="preview-content">
+                    <div class="preview-content-heading"><span></span><i></i></div>
+                    <div class="preview-stats"><div><b>248</b><small>Total assets</small></div><div><b>186</b><small>Assigned</small></div><div><b>42</b><small>Available</small></div></div>
+                    <div class="preview-chart"><div class="preview-chart-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+                    <div class="preview-table"><span></span><span></span><span></span><span></span></div>
+                    <div class="preview-table short"><span></span><span></span><span></span><span></span></div>
+                </div>
+            </div>
+        </div>
+        <div class="preview-trust"><span>✓</span> Built for confident IT operations</div>
+    </aside>
+</div>
+{% endblock %}

@@ -1,0 +1,3 @@
+{% extends "base.html" %}
+{% block title %}Delete {{ asset.asset_tag }} | proIT{% endblock %}
+{% block content %}<section class="asset-heading"><div><div class="eyebrow">Confirm action</div><h1>Delete {{ asset.asset_tag }}?</h1><p class="subtle">This will permanently remove this asset record.</p></div></section><section class="panel"><p>Are you sure you want to delete <strong>{{ asset.asset_tag }}</strong> ({{ asset.model }})?</p><form method="post" class="form-actions">{% csrf_token %}<button class="danger-button" type="submit">Delete asset</button><a class="secondary-button" href="{% url 'assets:detail' asset.pk %}">Cancel</a></form></section>{% endblock %}

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | proIT{% endblock %}
+{% block content %}
+<section class="welcome">
+    <div><div class="eyebrow">Overview</div><h1>Good morning, {{ request.user.get_username }}.</h1><p class="subtle">Here’s what’s happening across your IT environment.</p></div>
+    <div class="date-badge">{% now "F j, Y" %}</div>
+</section>
+
+<section class="stats-grid" aria-label="Summary metrics">
+    {% if can_view_assets %}<a class="stat-card stat-card-link" href="{% url 'assets:list' %}">{% else %}<article class="stat-card">{% endif %}<div class="stat-top"><span class="stat-label">Total assets</span><span class="stat-icon">▣</span></div><div class="stat-value">{{ asset_count }}</div><span class="stat-note">All tracked hardware</span>{% if can_view_assets %}</a>{% else %}</article>{% endif %}
+    {% if can_view_employees %}<a class="stat-card stat-card-link" href="{% url 'people:list' 'employees' %}">{% else %}<article class="stat-card">{% endif %}<div class="stat-top"><span class="stat-label">Employees</span><span class="stat-icon">♙</span></div><div class="stat-value">{{ employee_count }}</div><span class="stat-note">Active records</span>{% if can_view_employees %}</a>{% else %}</article>{% endif %}
+    {% if can_view_vendors %}<a class="stat-card stat-card-link" href="{% url 'vendors:list' %}">{% else %}<article class="stat-card">{% endif %}<div class="stat-top"><span class="stat-label">Vendors</span><span class="stat-icon">◈</span></div><div class="stat-value">{{ vendor_count }}</div><span class="stat-note">Registered suppliers</span>{% if can_view_vendors %}</a>{% else %}</article>{% endif %}
+    {% if can_view_assets %}<a class="stat-card stat-card-link" href="{% url 'assets:list' %}?status=available">{% else %}<article class="stat-card">{% endif %}<div class="stat-top"><span class="stat-label">Available assets</span><span class="stat-icon">✓</span></div><div class="stat-value">{{ available_count }}</div><span class="stat-note"><strong>Ready</strong> for assignment</span>{% if can_view_assets %}</a>{% else %}</article>{% endif %}
+    {% if can_view_assets %}<a class="stat-card stat-card-link" href="{% url 'assets:list' %}?status=maintenance">{% else %}<article class="stat-card">{% endif %}<div class="stat-top"><span class="stat-label">Maintenance</span><span class="stat-icon">⚒</span></div><div class="stat-value">{{ maintenance_count }}</div><span class="stat-note">Currently in service</span>{% if can_view_assets %}</a>{% else %}</article>{% endif %}
+</section>
+
+<section class="grid-main">
+    <article class="panel">
+        <div class="panel-header"><h2>Asset overview</h2><span class="subtle">Current inventory</span></div>
+        {% if asset_count %}
+        <div class="chart" aria-label="Asset status overview">
+            {% for row in status_rows %}
+            <div class="chart-bar"><div class="bar" style="height:{{ row.percent }}%"></div><span class="bar-label">{{ row.label }}</span></div>
+            {% endfor %}
+        </div>
+        <div class="chart-legend"><span><i class="legend-dot"></i>Assets by current status</span><span>{{ asset_count }} total tracked</span></div>
+        {% else %}<div class="empty">No assets have been added yet.</div>{% endif %}
+    </article>
+    <article class="panel">
+        <div class="panel-header"><h2>Status breakdown</h2><span class="subtle">Live</span></div>
+        <div class="status-list">
+            {% for row in status_rows %}
+            <div class="status-row"><span>{{ row.label }}</span><span class="status-track"><span class="status-fill" style="width:{{ row.percent }}%"></span></span><span class="status-number">{{ row.count }}</span></div>
+            {% endfor %}
+        </div>
+    </article>
+</section>
+
+<section class="lower-grid">
+    <article class="panel">
+        <div class="panel-header"><h2>Recent assets</h2>{% if can_view_assets %}<a class="panel-link" href="{% url 'assets:list' %}">View all →</a>{% endif %}</div>
+        {% if recent_assets %}
+        <div class="table-wrap"><table><thead><tr><th>Asset tag</th><th>Model</th><th>Assigned to</th><th>Status</th></tr></thead><tbody>
+        {% for asset in recent_assets %}<tr data-searchable><td class="asset-id">{{ asset.asset_tag }}</td><td><strong>{{ asset.model.name }}</strong><br><span class="asset-model">{{ asset.model.manufacturer.name }}</span></td><td>{% if asset.assigned_employee %}{{ asset.assigned_employee.full_name }}{% else %}<span class="asset-model">Unassigned</span>{% endif %}</td><td><span class="status-pill {{ asset.status }}">{{ asset.get_status_display }}</span></td></tr>{% endfor %}
+        </tbody></table></div>
+        {% else %}<div class="empty">No recent assets to display.</div>{% endif %}
+    </article>
+    <article class="panel">
+        <div class="panel-header"><h2>Recent activity</h2><span class="subtle">Latest updates</span></div>
+        {% if recent_activity %}<div class="activity-list">{% for activity in recent_activity %}<div class="activity"><span class="activity-mark">↗</span><div><div class="activity-title">{{ activity.label }}</div><div class="activity-detail">{{ activity.detail }}</div><div class="activity-date">{{ activity.date|date:"M j, Y · H:i" }}</div></div></div>{% endfor %}</div>{% else %}<div class="empty">Activity will appear as assets are added.</div>{% endif %}
+    </article>
+</section>
+
+<section class="panel" style="margin-top:20px;">
+    <div class="panel-header"><h2>Quick actions</h2><span class="subtle">Common workflows</span></div>
+    <div class="action-grid">
+        {% if can_import_assets %}<a class="action" href="{% url 'dataio-workspace' %}">↑ Import assets</a>{% endif %}
+        {% if can_export_assets %}<a class="action" href="{% url 'csv-export' 'assets' %}">↓ Export assets</a><a class="action" href="{% url 'csv-template' 'assets' %}">▤ Asset template</a>{% endif %}
+        {% if can_view_assets %}<a class="action" href="{% url 'reports' %}">▥ Reports</a>{% endif %}
+    </div>
+</section>
+<section class="help-panel"><div><h2>Need a hand?</h2><p>Learn how to manage assets, imports, and inventory workflows in proIT.</p></div>{% if can_view_assets %}<a class="panel-link" href="{% url 'assets:list' %}">Open asset workspace →</a>{% endif %}</section>
+{% endblock %}

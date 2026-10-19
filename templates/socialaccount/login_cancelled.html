@@ -1,0 +1,8 @@
+{% extends "socialaccount/base_entrance.html" %}
+{% load i18n allauth %}
+{% block head_title %}{% trans "Sign-in cancelled" %}{% endblock %}
+{% block content %}
+    {% element h1 %}{% trans "Sign-in cancelled" %}{% endelement %}
+    {% element p %}{% trans "No changes were made to your proIT account. You can try Google sign-in again whenever you're ready." %}{% endelement %}
+    <p class="oauth-secondary"><a href="{% url 'login' %}">{% trans "Return to sign in" %}</a></p>
+{% endblock content %}

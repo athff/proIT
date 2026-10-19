@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load static socialaccount %}
+{% block title %}Create account | proIT{% endblock %}
+{% block extra_styles %}<link rel="stylesheet" href="{% static 'css/signup.css' %}">{% endblock %}
+{% block content %}
+<main class="signup-page" aria-labelledby="signup-heading">
+    <section class="signup-card">
+        <div class="signup-intro">
+            <a class="signup-logo" href="{% url 'login' %}">
+                <img src="{% static 'image/proit-logo.png' %}" alt="proIT - IT Asset Management">
+            </a>
+            <span class="signup-eyebrow">Get started with proIT</span>
+            <h1>Make every asset count.</h1>
+            <p>Create a secure workspace for your IT inventory, people, vendors, and operational status.</p>
+            <div class="signup-points">
+                <span><b aria-hidden="true">✓</b> One trusted workspace</span>
+                <span><b aria-hidden="true">✓</b> Built for IT teams</span>
+                <span><b aria-hidden="true">✓</b> Clear operational insight</span>
+            </div>
+        </div>
+        <div class="signup-form-panel">
+            <div class="signup-heading">
+                <span class="signup-eyebrow">Create your account</span>
+                <h2 id="signup-heading">Welcome to proIT</h2>
+                <p>Set up your details to access your workspace.</p>
+            </div>
+            <form class="signup-form" method="post" novalidate>
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+                <div class="signup-name-grid">
+                    {% for field in form %}
+                        {% if field.name == "first_name" or field.name == "last_name" %}
+                        <div class="signup-field">
+                            {{ field.label_tag }}
+                            {{ field }}
+                            {{ field.errors }}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% for field in form %}
+                    {% if field.name != "first_name" and field.name != "last_name" %}
+                    <div class="signup-field">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {% if field.help_text %}<span class="signup-help">{{ field.help_text|safe }}</span>{% endif %}
+                        {{ field.errors }}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+                <button class="signup-submit" type="submit">Create account</button>
+            </form>
+            <div class="signup-divider"><span>or continue with</span></div>
+            <a class="signup-google" href="{% provider_login_url 'google' %}" aria-label="Continue with Google">
+                <span aria-hidden="true">G</span>Continue with Google
+            </a>
+            <p class="signup-footer">Already have an account? <a href="{% url 'login' %}">Sign in</a></p>
+        </div>
+    </section>
+</main>
+{% endblock %}

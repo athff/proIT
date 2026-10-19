@@ -1,0 +1,206 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}proIT{% endblock %}</title>
+    {% block extra_styles %}{% endblock %}
+    <style>
+        :root {
+            --navy: #111c35;
+            --navy-soft: #1a2746;
+            --blue: #2f6fed;
+            --blue-soft: #eaf1ff;
+            --ink: #17233f;
+            --muted: #71809b;
+            --line: #e8edf5;
+            --canvas: #f7f9fc;
+            --white: #fff;
+            --green: #1fa776;
+            --orange: #ee9a2e;
+            --red: #e46060;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--canvas); color: var(--ink); }
+        a { color: inherit; text-decoration: none; }
+        button, input { font: inherit; }
+        .app-shell { min-height: 100vh; }
+        .sidebar {
+            position: fixed; inset: 0 auto 0 0; z-index: 20; width: 246px;
+            display: flex; flex-direction: column; padding: 26px 16px;
+            background: var(--navy); color: #aab7d0; transition: transform .25s ease;
+        }
+        .brand {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0 13px 36px;
+}
+
+.brand-logo {
+    display: block;
+    width: 190px;
+    max-width: 100%;
+    height: auto;
+    max-height: 60px;
+    object-fit: contain;
+    object-position: left center;
+}
+        .brand-mark { display: grid; place-items: center; width: 31px; height: 31px; border-radius: 9px; background: var(--blue); color: #fff; font-size: 15px; }
+        .nav-label { padding: 0 13px 10px; font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #667596; }
+        .nav-list { display: grid; gap: 5px; }
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 11px 13px; border-radius: 9px; font-size: 13px; font-weight: 600; }
+        .nav-link:hover, .nav-link.active { background: var(--blue); color: #fff; }
+        .nav-icon { width: 18px; text-align: center; font-size: 16px; opacity: .9; }
+        .sidebar-bottom { margin-top: auto; display: grid; gap: 8px; }
+        .sidebar-bottom .nav-link { color: #93a1bd; }
+        .main { margin-left: 246px; min-width: 0; }
+        .auth-content { max-width: 42rem; margin: 0 auto; padding: 4rem 1rem; }
+        .topbar { height: 76px; display: flex; align-items: center; gap: 22px; padding: 0 42px; background: var(--white); border-bottom: 1px solid var(--line); }
+        .menu-toggle { display: none; border: 0; background: none; color: var(--ink); font-size: 22px; cursor: pointer; }
+        .search { position: relative; flex: 1; max-width: 410px; }
+        .search input { width: 100%; padding: 11px 15px 11px 40px; border: 1px solid var(--line); border-radius: 8px; outline: 0; background: #fbfcfe; color: var(--ink); font-size: 13px; }
+        .search input:focus { border-color: #a9c2f9; box-shadow: 0 0 0 3px var(--blue-soft); }
+        .search-icon { position: absolute; left: 14px; top: 10px; color: var(--muted); }
+        .topbar-actions { display: flex; align-items: center; gap: 22px; margin-left: auto; }
+        .top-icon { position: relative; color: var(--muted); font-size: 19px; }
+        .notification-dot { position: absolute; right: -4px; top: -3px; width: 6px; height: 6px; border-radius: 50%; background: var(--blue); }
+        .top-date { color: var(--muted); font-size: 12px; white-space: nowrap; }
+        .user-chip { display: flex; align-items: center; gap: 9px; padding-left: 14px; border-left: 1px solid var(--line); }
+        .avatar { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #dce8ff; color: var(--blue); font-size: 12px; font-weight: 800; }
+        .user-name { font-size: 12px; font-weight: 700; }
+        .user-role { display: block; margin-top: 2px; color: var(--muted); font-size: 10px; font-weight: 500; }
+        .content { max-width: 1500px; padding: 34px 42px 52px; margin: 0 auto; }
+        .eyebrow { color: var(--blue); font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+        h1, h2, h3, p { margin-top: 0; }
+        h1 { margin: 7px 0 7px; font-size: 28px; letter-spacing: -.04em; }
+        h2 { margin-bottom: 18px; font-size: 16px; letter-spacing: -.02em; }
+        .subtle { color: var(--muted); font-size: 13px; }
+        .welcome { display: flex; align-items: end; justify-content: space-between; margin-bottom: 28px; }
+        .date-badge { color: var(--muted); font-size: 12px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; margin-bottom: 26px; }
+        .stat-card, .panel { background: var(--white); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 5px 18px #20375a08; }
+        .stat-card { padding: 19px; }
+        .stat-card-link { display: block; color: inherit; transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+        .stat-card-link:hover, .stat-card-link:focus-visible { border-color: #c8d8fb; box-shadow: 0 8px 22px #20375a14; transform: translateY(-2px); outline: none; }
+        .stat-card-link:focus-visible { box-shadow: 0 0 0 3px var(--blue-soft), 0 8px 22px #20375a14; }
+        .stat-top { display: flex; justify-content: space-between; align-items: start; margin-bottom: 17px; }
+        .stat-label { color: var(--muted); font-size: 12px; font-weight: 600; }
+        .stat-icon { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; background: var(--blue-soft); color: var(--blue); font-size: 15px; }
+        .stat-value { margin-bottom: 6px; font-size: 25px; font-weight: 800; letter-spacing: -.04em; }
+        .stat-note { color: var(--muted); font-size: 11px; }
+        .stat-note strong { color: var(--green); }
+        .grid-main { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(285px, .85fr); gap: 20px; margin-bottom: 20px; }
+        .panel { padding: 22px; }
+        .panel-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 22px; }
+        .panel-header h2 { margin: 0; }
+        .panel-link { color: var(--blue); font-size: 11px; font-weight: 700; }
+        .chart { height: 218px; display: flex; align-items: end; gap: 7%; padding: 15px 6% 26px; border-bottom: 1px solid var(--line); background: repeating-linear-gradient(to bottom, transparent 0, transparent 53px, #eef2f8 54px); }
+        .chart-bar { position: relative; display: flex; align-items: end; flex: 1; height: 100%; }
+        .bar { width: 100%; min-height: 4px; border-radius: 6px 6px 0 0; background: linear-gradient(180deg, #6f9cff, var(--blue)); }
+        .bar-label { position: absolute; bottom: -24px; width: 100%; color: var(--muted); font-size: 10px; text-align: center; }
+        .chart-legend { display: flex; gap: 20px; margin-top: 17px; color: var(--muted); font-size: 11px; }
+        .legend-dot { display: inline-block; width: 8px; height: 8px; margin-right: 5px; border-radius: 50%; background: var(--blue); }
+        .status-list { display: grid; gap: 16px; }
+        .status-row { display: grid; grid-template-columns: 90px 1fr 30px; align-items: center; gap: 11px; color: var(--muted); font-size: 11px; }
+        .status-track { height: 7px; overflow: hidden; border-radius: 8px; background: #edf1f7; }
+        .status-fill { height: 100%; border-radius: inherit; background: var(--blue); }
+        .status-row:nth-child(2) .status-fill { background: var(--green); }
+        .status-row:nth-child(3) .status-fill { background: var(--orange); }
+        .status-row:nth-child(4) .status-fill { background: #a4afc3; }
+        .status-row:nth-child(5) .status-fill { background: var(--red); }
+        .status-number { color: var(--ink); font-weight: 800; text-align: right; }
+        .lower-grid { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(285px, .85fr); gap: 20px; }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { padding: 0 12px 13px; color: var(--muted); font-size: 10px; font-weight: 700; text-align: left; text-transform: uppercase; letter-spacing: .06em; }
+        td { padding: 14px 12px; border-top: 1px solid #f0f3f7; white-space: nowrap; }
+        td:first-child, th:first-child { padding-left: 0; }
+        .asset-id { color: var(--blue); font-weight: 800; }
+        .asset-model { color: var(--muted); }
+        .status-pill { display: inline-block; padding: 5px 9px; border-radius: 20px; background: var(--blue-soft); color: var(--blue); font-size: 10px; font-weight: 700; }
+        .status-pill.maintenance { background: #fff4df; color: #c27612; }
+        .status-pill.assigned { background: #e7f8f1; color: #168360; }
+        .activity-list { display: grid; gap: 19px; }
+        .activity { display: grid; grid-template-columns: 28px 1fr; gap: 11px; }
+        .activity-mark { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: var(--blue-soft); color: var(--blue); font-size: 12px; }
+        .activity-title { margin-bottom: 3px; font-size: 12px; font-weight: 700; }
+        .activity-detail, .activity-date { color: var(--muted); font-size: 10px; }
+        .action-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 20px; }
+        .action { display: flex; align-items: center; gap: 8px; min-height: 46px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 9px; color: var(--ink); font-size: 11px; font-weight: 700; background: #fff; }
+        .action:hover { border-color: #b7caf2; color: var(--blue); }
+        .help-panel { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-top: 20px; padding: 19px 22px; background: #eef4ff; border: 1px solid #dce8ff; border-radius: 12px; }
+        .help-panel h2 { margin-bottom: 6px; }
+        .help-panel p { margin: 0; color: var(--muted); font-size: 12px; }
+        .empty { padding: 28px 0; color: var(--muted); font-size: 12px; text-align: center; }
+        .notice { margin-bottom: 18px; padding: 12px 14px; border-radius: 8px; background: #e7f8f1; color: #168360; font-size: 12px; font-weight: 600; }
+        .notice.error { background: #fff0f0; color: #bd4444; }
+        @media (max-width: 1100px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } .grid-main, .lower-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 760px) {
+            .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0; } .topbar { height: 66px; padding: 0 18px; } .menu-toggle { display: block; }
+            .top-date, .user-name { display: none; } .user-chip { padding-left: 0; border: 0; } .topbar-actions { gap: 14px; }
+            .content { padding: 26px 18px 40px; } .welcome { align-items: start; flex-direction: column; gap: 7px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; } .stat-card { padding: 15px; }
+            .stat-value { font-size: 22px; } .panel { padding: 17px; } .action-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 420px) { .stats-grid { grid-template-columns: 1fr 1fr; } .action-grid { grid-template-columns: 1fr; } .search { display: none; } }
+    </style>
+</head>
+<body>
+<div class="app-shell">
+{% if request.user.is_authenticated and not is_auth_page %}
+    <aside class="sidebar" id="sidebar">
+        <a class="brand" href="{% url 'dashboard' %}">
+            <img src="{% static 'image/proit-logo.png' %}" alt="proIT - IT Asset Management" class="brand-logo"></a>
+        <div class="nav-label">Workspace</div>
+        <nav class="nav-list" aria-label="Main navigation">
+            <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}"><span class="nav-icon">⌂</span>Dashboard</a>
+            {% if perms.assets.view_asset or request.user.is_superuser %}<a class="nav-link {% if request.resolver_match.namespace == 'assets' %}active{% endif %}" href="{% url 'assets:list' %}"><span class="nav-icon">▣</span>Assets</a>{% endif %}
+            {% if perms.assets.change_asset or request.user.is_superuser %}<a class="nav-link" href="{% url 'assets:assign' %}"><span class="nav-icon">↔</span>Assign asset</a>{% endif %}
+            {% if perms.people.view_employee or request.user.is_superuser %}<a class="nav-link {% if request.resolver_match.namespace == 'people' %}active{% endif %}" href="{% url 'people:list' 'employees' %}"><span class="nav-icon">♙</span>People</a>{% endif %}
+            {% if perms.vendors.view_vendor or request.user.is_superuser %}<a class="nav-link {% if request.resolver_match.namespace == 'vendors' %}active{% endif %}" href="{% url 'vendors:list' %}"><span class="nav-icon">◈</span>Vendors</a>{% endif %}
+            {% if request.user.is_staff and perms.assets.view_category or request.user.is_superuser %}<a class="nav-link" href="{% url 'admin:assets_category_changelist' %}"><span class="nav-icon">▤</span>Catalog</a>{% endif %}
+            {% if perms.assets.view_asset or request.user.is_superuser %}<a class="nav-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}" href="{% url 'reports' %}"><span class="nav-icon">▥</span>Reports</a>{% endif %}
+            {% if request.user.is_superuser or perms.assets.view_asset %}<a class="nav-link {% if request.resolver_match.namespace == 'dataio' %}active{% endif %}" href="{% url 'dataio-workspace' %}"><span class="nav-icon">⇅</span>CSV tools</a>{% endif %}
+        </nav>
+        <div class="sidebar-bottom">
+            <a class="nav-link" href="{% url 'password_change' %}"><span class="nav-icon">⚙</span>Account settings</a>
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}<button class="nav-link" type="submit" style="width:100%;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;"><span class="nav-icon">↪</span>Sign out</button>
+            </form>
+        </div>
+    </aside>
+    <div class="main">
+        <header class="topbar">
+            <button class="menu-toggle" id="menu-toggle" type="button" aria-label="Toggle navigation">☰</button>
+            <label class="search" for="asset-search"><span class="search-icon">⌕</span><input id="asset-search" type="search" placeholder="Search dashboard..."></label>
+            <div class="topbar-actions">
+                <span class="top-icon" aria-label="Notifications">♧<span class="notification-dot"></span></span>
+                <span class="top-date">{% now "D, M j, Y" %}</span>
+                <div class="user-chip">
+                    <span class="avatar">{{ request.user.get_username|slice:":1"|upper }}</span>
+                    <span class="user-name">{{ request.user.get_username }}<span class="user-role">{{ user_role }}</span></span>
+                </div>
+            </div>
+        </header>
+{% endif %}
+<main class="{% if request.user.is_authenticated and not is_auth_page %}content{% else %}auth-content{% endif %}">{% block content %}{% endblock %}</main>
+{% if request.user.is_authenticated and not is_auth_page %}</div>{% endif %}
+</div>
+<script>
+    const toggle = document.getElementById("menu-toggle");
+    const sidebar = document.getElementById("sidebar");
+    if (toggle) toggle.addEventListener("click", () => sidebar.classList.toggle("open"));
+    const search = document.getElementById("asset-search");
+    if (search) search.addEventListener("input", (event) => {
+        const term = event.target.value.toLowerCase();
+        document.querySelectorAll("[data-searchable]").forEach((row) => {
+            row.hidden = term && !row.textContent.toLowerCase().includes(term);
+        });
+    });
+</script>
+</body>
+</html>

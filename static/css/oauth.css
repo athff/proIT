@@ -1,0 +1,175 @@
+.oauth-page {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 32px 20px;
+    background:
+        radial-gradient(circle at 15% 10%, #eaf1ff 0, transparent 32%),
+        var(--canvas);
+}
+
+.oauth-shell {
+    width: min(100%, 480px);
+}
+
+.oauth-brand {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 22px;
+}
+
+.oauth-brand img {
+    width: 172px;
+    height: auto;
+}
+
+.oauth-card {
+    padding: 38px 40px;
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: 0 18px 50px #20375a12;
+}
+
+.oauth-card h1 {
+    margin: 0 0 10px;
+    color: var(--ink);
+    font-size: 25px;
+    letter-spacing: -.04em;
+    text-align: center;
+}
+
+.oauth-card p {
+    margin: 0 0 24px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.65;
+    text-align: center;
+}
+
+.oauth-card form {
+    display: grid;
+    gap: 16px;
+}
+
+.oauth-card form > div {
+    display: grid;
+    gap: 10px;
+}
+
+.oauth-card label {
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.oauth-card input,
+.oauth-card select {
+    width: 100%;
+    min-height: 44px;
+    padding: 0 13px;
+    border: 1px solid #dbe3ef;
+    border-radius: 8px;
+    background: #fbfcfe;
+    color: var(--ink);
+    font-size: 13px;
+}
+
+.oauth-card input:focus,
+.oauth-card select:focus {
+    border-color: #8eaff5;
+    box-shadow: 0 0 0 3px var(--blue-soft);
+    outline: 0;
+}
+
+.oauth-card button,
+.oauth-card [type="submit"] {
+    width: 100%;
+    min-height: 44px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--blue);
+    color: var(--white);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.oauth-card button:hover,
+.oauth-card button:focus-visible,
+.oauth-card [type="submit"]:hover,
+.oauth-card [type="submit"]:focus-visible {
+    background: #255ed0;
+    box-shadow: 0 0 0 3px var(--blue-soft);
+    outline: 0;
+}
+
+.oauth-card .errorlist,
+.oauth-message {
+    margin: 0 0 18px;
+    padding: 11px 13px;
+    border: 1px solid #f2caca;
+    border-radius: 8px;
+    background: #fff5f5;
+    color: #a63d3d;
+    font-size: 12px;
+    line-height: 1.5;
+    list-style: none;
+}
+
+.oauth-card .oauth-secondary {
+    margin-top: 20px;
+    margin-bottom: 0;
+    font-size: 12px;
+}
+
+.oauth-card a {
+    color: var(--blue);
+    font-weight: 700;
+}
+
+.oauth-redirect-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    border-radius: 8px;
+    background: var(--blue);
+    color: var(--white) !important;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.oauth-redirect-button:hover,
+.oauth-redirect-button:focus-visible {
+    background: #255ed0;
+    box-shadow: 0 0 0 3px var(--blue-soft);
+    outline: 0;
+}
+
+.oauth-card .oauth-secondary a:hover,
+.oauth-card .oauth-secondary a:focus-visible {
+    text-decoration: underline;
+}
+
+.oauth-footer {
+    margin-top: 18px;
+    color: var(--muted);
+    font-size: 11px;
+    text-align: center;
+}
+
+@media (max-width: 520px) {
+    .oauth-page {
+        padding: 20px 14px;
+    }
+
+    .oauth-card {
+        padding: 30px 22px;
+        border-radius: 14px;
+    }
+
+    .oauth-card h1 {
+        font-size: 22px;
+    }
+}

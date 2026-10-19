@@ -1,0 +1,29 @@
+{% extends "socialaccount/base_entrance.html" %}
+{% load i18n allauth %}
+{% block head_title %}{% trans "Sign In" %}{% endblock %}
+{% block content %}
+    {% if process == "connect" %}
+        {% element h1 %}
+            {% blocktrans with provider.name as provider %}Connect {{ provider }}{% endblocktrans %}
+        {% endelement %}
+        {% element p %}
+            {% blocktrans with provider.name as provider %}You are about to connect a new third-party account from {{ provider }}.{% endblocktrans %}
+        {% endelement %}
+    {% else %}
+        {% element h1 %}
+            {% trans "Continue to ProIT" %}
+        {% endelement %}
+        {% element p %}
+            {% blocktrans with provider.name as provider %}Continue securely with your {{ provider }} account to access your ProIT workspace.{% endblocktrans %}
+        {% endelement %}
+    {% endif %}
+    {% element form method="post" no_visible_fields=True %}
+        {% slot actions %}
+            {% csrf_token %}
+            {% element button type="submit" %}
+                {% trans "Continue with Google" %}
+            {% endelement %}
+        {% endslot %}
+    {% endelement %}
+    <p class="oauth-secondary"><a href="{% url 'login' %}">{% trans "Use another sign-in method" %}</a></p>
+{% endblock content %}

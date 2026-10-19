@@ -1,0 +1,3 @@
+{% extends "base.html" %}
+{% block title %}Delete {{ record.company_name }} | proIT{% endblock %}
+{% block content %}<section class="vendor-heading"><div><div class="eyebrow">Confirm action</div><h1>Delete {{ record.company_name }}?</h1><p class="subtle">This will permanently remove this vendor record.</p></div></section><section class="panel"><p>Are you sure you want to delete <strong>{{ record.company_name }}</strong>?</p><form method="post" class="form-actions">{% csrf_token %}<button class="danger-button" type="submit">Delete vendor</button><a class="secondary-button" href="{% url 'vendors:detail' record.pk %}">Cancel</a></form></section>{% endblock %}

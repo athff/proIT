@@ -1,0 +1,51 @@
+# Python/Django
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+*.egg-info/
+.coverage
+htmlcov/
+.mypy_cache/
+.tox/
+.pytest_cache/
+
+# Virtual environment (singular choice)
+.venv/
+venv/
+env/
+ENV/
+
+# Environment variables
+.env
+*.env
+
+# Database
+*.db
+*.sqlite3
+backups/
+
+# Collected production static files
+staticfiles/
+
+# VS Code
+.vscode/
+
+# But keep these if they exist:
+# settings.json, launch.json (they're small and useful)
+
+# Logs
+*.log
+logs/
+/test*.txt
+
+# Media/files (Django user-uploaded files)
+media/
+
+# OS
+.DS_Store
+Thumbs.db

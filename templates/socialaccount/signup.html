@@ -1,0 +1,20 @@
+{% extends "allauth/layouts/entrance.html" %}
+{% load i18n allauth %}
+{% block head_title %}{% trans "Create account" %}{% endblock %}
+{% block content %}
+    {% element h1 %}{% trans "Complete your account" %}{% endelement %}
+    {% element p %}
+        {% blocktrans with provider_name=account.get_provider.name site_name=site.name %}Continue with {{ provider_name }} to create your proIT account on {{ site_name }}.{% endblocktrans %}
+    {% endelement %}
+    {% url 'socialaccount_signup' as action_url %}
+    {% element form form=form method="post" action=action_url %}
+        {% slot body %}
+            {% csrf_token %}
+            {% element fields form=form unlabeled=True %}{% endelement %}
+            {{ redirect_field }}
+        {% endslot %}
+        {% slot actions %}
+            {% element button type="submit" %}{% trans "Create account" %}{% endelement %}
+        {% endslot %}
+    {% endelement %}
+{% endblock content %}

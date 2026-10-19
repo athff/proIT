@@ -185,10 +185,10 @@ def _database_settings(database_url: str | None) -> dict:
         }
 
     parsed = urlparse(database_url)
-    if parsed.scheme not in {"postgres", "postgresql"}:
-        raise ImproperlyConfigured(
-            "DATABASE_URL must use sqlite, postgres, or postgresql."
-        )
+#    if parsed.scheme not in {"postgres", "postgresql"}:
+#        raise ImproperlyConfigured(
+#            "DATABASE_URL must use sqlite, postgres, or postgresql."
+#        )
     if not parsed.hostname or not parsed.path or parsed.path == "/":
         raise ImproperlyConfigured("DATABASE_URL must include a database name.")
 

@@ -15,6 +15,7 @@ from dataio.services.authorization import VIEWER, configure_role_groups
 from people.models import Employee
 from vendors.models import Vendor
 from config.settings import (
+    _allowed_hosts,
     _database_settings,
     _security_settings,
     _static_storage_backend,
@@ -252,6 +253,27 @@ class AuthenticationTests(TestCase):
         self.assertEqual(settings["ENGINE"], "django.db.backends.postgresql")
         self.assertEqual(settings["OPTIONS"]["sslmode"], "require")
         self.assertTrue(settings["CONN_HEALTH_CHECKS"])
+
+    def test_allowed_hosts_include_vercel_runtime_hostnames(self):
+        with patch.dict(
+            os.environ,
+            {
+                "ALLOWED_HOSTS": "custom.example.com,custom.example.com",
+                "VERCEL_URL": "pro-it-peach.vercel.app",
+                "VERCEL_PROJECT_PRODUCTION_URL": "proit.vercel.app",
+                "VERCEL_BRANCH_URL": "proit-git-master.vercel.app",
+            },
+            clear=True,
+        ):
+            self.assertEqual(
+                _allowed_hosts(),
+                [
+                    "custom.example.com",
+                    "pro-it-peach.vercel.app",
+                    "proit.vercel.app",
+                    "proit-git-master.vercel.app",
+                ],
+            )
 
 
 class DashboardDataTests(TestCase):

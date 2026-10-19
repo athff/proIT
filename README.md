@@ -79,7 +79,9 @@ settings; never commit them.
 - `DJANGO_ENV=production`
 - `DEBUG=False`
 - `SECRET_KEY` — a strong random production value
-- `ALLOWED_HOSTS` — the Vercel deployment hostname(s), comma-separated
+- `ALLOWED_HOSTS` — custom deployment hostname(s), comma-separated. Vercel's
+  `VERCEL_URL`, `VERCEL_PROJECT_PRODUCTION_URL`, and `VERCEL_BRANCH_URL` are
+  also accepted automatically.
 - `CSRF_TRUSTED_ORIGINS` — HTTPS origins such as
   `https://your-project.vercel.app`, comma-separated
 - `DATABASE_URL` — the existing Neon PostgreSQL connection string

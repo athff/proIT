@@ -47,6 +47,18 @@ def _host_list(value: str | None) -> list[str]:
     return [host.strip() for host in (value or "").split(",") if host.strip()]
 
 
+def _allowed_hosts() -> list[str]:
+    """Combine explicit hosts with the hostname supplied by Vercel."""
+    values = _host_list(os.getenv("ALLOWED_HOSTS"))
+    for variable in (
+        "VERCEL_URL",
+        "VERCEL_PROJECT_PRODUCTION_URL",
+        "VERCEL_BRANCH_URL",
+    ):
+        values.extend(_host_list(os.getenv(variable)))
+    return list(dict.fromkeys(values))
+
+
 def _security_settings(environment: str) -> dict:
     """Return transport and cookie settings without changing local development."""
     production = environment == "production"
@@ -100,7 +112,7 @@ SECRET_KEY = os.getenv("SECRET_KEY") or (
     else ""
 )
 DEBUG = _env_bool("DEBUG", ENVIRONMENT != "production")
-ALLOWED_HOSTS = _host_list(os.getenv("ALLOWED_HOSTS"))                                                                                                                                                                                                                                                      
+ALLOWED_HOSTS = _allowed_hosts()
 EMAIL_BACKEND_CONFIG = os.getenv(
     "PROIT_EMAIL_BACKEND",
     "django.core.mail.backends.console.EmailBackend",

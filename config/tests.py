@@ -17,6 +17,7 @@ from vendors.models import Vendor
 from config.settings import (
     _allowed_hosts,
     _database_settings,
+    _deployment_environment,
     _security_settings,
     _static_storage_backend,
     validate_production_configuration,
@@ -206,6 +207,7 @@ class AuthenticationTests(TestCase):
         self.assertFalse(settings["SESSION_COOKIE_SECURE"])
         self.assertFalse(settings["CSRF_COOKIE_SECURE"])
         self.assertEqual(settings["SECURE_HSTS_SECONDS"], 0)
+        self.assertIsNone(settings["SECURE_PROXY_SSL_HEADER"])
 
     def test_production_security_settings_default_secure_except_hsts(self):
         with patch.dict(
@@ -218,6 +220,30 @@ class AuthenticationTests(TestCase):
         self.assertTrue(settings["SESSION_COOKIE_SECURE"])
         self.assertTrue(settings["CSRF_COOKIE_SECURE"])
         self.assertEqual(settings["SECURE_HSTS_SECONDS"], 0)
+        self.assertEqual(
+            settings["SECURE_PROXY_SSL_HEADER"],
+            ("HTTP_X_FORWARDED_PROTO", "https"),
+        )
+
+    def test_vercel_without_explicit_environment_uses_production(self):
+        with patch.dict(
+            os.environ,
+            {"VERCEL": "1", "VERCEL_URL": "pro-it-peach.vercel.app"},
+            clear=True,
+        ):
+            self.assertEqual(_deployment_environment(), "production")
+
+    def test_vercel_hosts_are_trusted_https_origins(self):
+        with patch.dict(
+            os.environ,
+            {"VERCEL_URL": "pro-it-peach.vercel.app"},
+            clear=True,
+        ):
+            settings = _security_settings("production")
+        self.assertIn(
+            "https://pro-it-peach.vercel.app",
+            settings["CSRF_TRUSTED_ORIGINS"],
+        )
 
     def test_static_storage_uses_manifest_backend_only_in_production(self):
         from config import settings as project_settings

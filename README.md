@@ -46,6 +46,12 @@ Configure these Render environment variables without committing their values:
 - `CSRF_TRUSTED_ORIGINS`
 - `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` when Google sign-in is enabled
 
+`DJANGO_ENV=production` and a stable `SECRET_KEY` are required on Vercel.
+When `DJANGO_ENV` is omitted, the application detects Vercel's runtime
+variables and defaults to production mode rather than generating a
+per-process development key. Vercel hostnames are automatically added to
+`ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`.
+
 Do not replace the existing `DATABASE_URL` with a newly provisioned database.
 Review the service settings, configure HTTPS, and run migrations as a separate,
 explicit release step only after the deployment target has been reviewed.

@@ -29,7 +29,16 @@ load_dotenv(BASE_DIR / ".env", override=False)
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
-ENVIRONMENT = os.getenv("DJANGO_ENV", "development").strip().lower()
+def _deployment_environment() -> str:
+    configured = os.getenv("DJANGO_ENV")
+    if configured:
+        return configured.strip().lower()
+    if os.getenv("VERCEL") or os.getenv("VERCEL_URL"):
+        return "production"
+    return "development"
+
+
+ENVIRONMENT = _deployment_environment()
 
 
 def _env_bool(name: str, default: bool) -> bool:
@@ -59,6 +68,24 @@ def _allowed_hosts() -> list[str]:
     return list(dict.fromkeys(values))
 
 
+def _vercel_hosts() -> list[str]:
+    hosts = []
+    for variable in (
+        "VERCEL_URL",
+        "VERCEL_PROJECT_PRODUCTION_URL",
+        "VERCEL_BRANCH_URL",
+    ):
+        hosts.extend(_host_list(os.getenv(variable)))
+    return list(dict.fromkeys(hosts))
+
+
+def _csrf_trusted_origins() -> list[str]:
+    origins = _host_list(os.getenv("CSRF_TRUSTED_ORIGINS"))
+    for host in _vercel_hosts():
+        origins.append(host if "://" in host else f"https://{host}")
+    return list(dict.fromkeys(origins))
+
+
 def _security_settings(environment: str) -> dict:
     """Return transport and cookie settings without changing local development."""
     production = environment == "production"
@@ -67,7 +94,10 @@ def _security_settings(environment: str) -> dict:
         "SESSION_COOKIE_SECURE": _env_bool("SESSION_COOKIE_SECURE", production),
         "CSRF_COOKIE_SECURE": _env_bool("CSRF_COOKIE_SECURE", production),
         "SECURE_HSTS_SECONDS": int(os.getenv("SECURE_HSTS_SECONDS", "0")),
-        "CSRF_TRUSTED_ORIGINS": _host_list(os.getenv("CSRF_TRUSTED_ORIGINS")),
+        "CSRF_TRUSTED_ORIGINS": _csrf_trusted_origins(),
+        "SECURE_PROXY_SSL_HEADER": (
+            ("HTTP_X_FORWARDED_PROTO", "https") if production else None
+        ),
     }
 
 

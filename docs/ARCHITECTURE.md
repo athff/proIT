@@ -68,6 +68,20 @@ Each module is a Django app with a focused responsibility. The app structure is 
 - Static and media file storage configured for the target deployment environment
 - Secret management via `.env` files; never committed to version control
 
+### Vercel-specific deployment
+
+Vercel's native Django support detects `manage.py`, resolves the configured
+`WSGI_APPLICATION`, runs `collectstatic` when `STATIC_ROOT` is configured, and
+serves the application as a Python Function. ProIT therefore does not need a
+`vercel.json` file or a serverless adapter. The production static backend
+(`CompressedManifestStaticFilesStorage`) is compatible with Vercel's CDN.
+
+Vercel functions are ephemeral and can scale horizontally. Neon remains the
+system of record; do not depend on process-local state, durable local files,
+long-running workers, or permanently warm database connections. CSV imports
+are request-scoped and are not durable uploads. Future media uploads require
+persistent object storage.
+
 ## Module Interactions
 
 - `people` app is referenced by `assets` (asset assigned to employee) and `checkouts` (checkout to/from employee)

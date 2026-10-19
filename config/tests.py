@@ -15,6 +15,7 @@ from dataio.services.authorization import VIEWER, configure_role_groups
 from people.models import Employee
 from vendors.models import Vendor
 from config.settings import (
+    _database_settings,
     _security_settings,
     _static_storage_backend,
     validate_production_configuration,
@@ -242,6 +243,15 @@ class AuthenticationTests(TestCase):
             allowed_hosts=["proit.example.com"],
             email_backend="django.core.mail.backends.smtp.EmailBackend",
         )
+
+    def test_postgresql_configuration_requires_ssl_and_health_checks(self):
+        settings = _database_settings(
+            "postgresql://user:password@db.example/neondb"
+        )
+
+        self.assertEqual(settings["ENGINE"], "django.db.backends.postgresql")
+        self.assertEqual(settings["OPTIONS"]["sslmode"], "require")
+        self.assertTrue(settings["CONN_HEALTH_CHECKS"])
 
 
 class DashboardDataTests(TestCase):

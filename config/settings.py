@@ -103,7 +103,7 @@ DEBUG = _env_bool("DEBUG", ENVIRONMENT != "production")
 ALLOWED_HOSTS = _host_list(
     os.getenv("ALLOWED_HOSTS")
     if ENVIRONMENT == "production"
-    else os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1")
+    else os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1","https://pro-it-peach.vercel.app/")
 )
 EMAIL_BACKEND_CONFIG = os.getenv(
     "PROIT_EMAIL_BACKEND",

@@ -26,7 +26,7 @@ AUTH_TEMPLATE_CONTEXT = {"is_auth_page": True}
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("/", auth_views.LoginView.as_view(extra_context=AUTH_TEMPLATE_CONTEXT), name="login"),
+    path("", auth_views.LoginView.as_view(extra_context=AUTH_TEMPLATE_CONTEXT), name="login"),
     path("accounts/signup/", signup, name="signup"),
     path("accounts/logout/", auth_views.LogoutView.as_view(extra_context=AUTH_TEMPLATE_CONTEXT), name="logout"),
     path(

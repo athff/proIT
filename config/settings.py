@@ -189,8 +189,8 @@ def _database_settings(database_url: str | None) -> dict:
 #        raise ImproperlyConfigured(
 #            "DATABASE_URL must use sqlite, postgres, or postgresql."
 #        )
-    if not parsed.hostname or not parsed.path or parsed.path == "/":
-        raise ImproperlyConfigured("DATABASE_URL must include a database name.")
+#    if not parsed.hostname or not parsed.path or parsed.path == "/":
+#        raise ImproperlyConfigured("DATABASE_URL must include a database name.")
 
     query = dict(parse_qsl(parsed.query, keep_blank_values=True))
     query.setdefault("sslmode", "require")

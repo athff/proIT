@@ -29,7 +29,7 @@ load_dotenv(BASE_DIR / ".env", override=False)
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
-ENVIRONMENT = os.getenv("DJANGO_ENV", "production").strip().lower()
+ENVIRONMENT = os.getenv("DJANGO_ENV", "development").strip().lower()
 
 
 def _env_bool(name: str, default: bool) -> bool:
@@ -102,7 +102,7 @@ SECRET_KEY = os.getenv("SECRET_KEY") or (
 DEBUG = _env_bool("DEBUG", ENVIRONMENT != "production")
 ALLOWED_HOSTS = _host_list(
     os.getenv("ALLOWED_HOSTS")
-    if ENVIRONMENT == "production"
+    if ENVIRONMENT == "development"
     else os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1","https://pro-it-peach.vercel.app/")
 )
 EMAIL_BACKEND_CONFIG = os.getenv(

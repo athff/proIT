@@ -312,6 +312,8 @@ class AuthenticationTests(TestCase):
             self.assertEqual(configuration["host"], "smtp.gmail.com")
             self.assertEqual(configuration["port"], 587)
             self.assertTrue(configuration["use_tls"])
+            self.assertFalse(configuration["use_ssl"])
+            self.assertEqual(configuration["timeout"], 30)
             self.assertEqual(
                 configuration["username"],
                 "sender@example.com",
@@ -334,6 +336,8 @@ class AuthenticationTests(TestCase):
                     "username": "",
                     "password": "",
                     "use_tls": True,
+                    "use_ssl": False,
+                    "timeout": 30,
                 },
             )
 
@@ -344,8 +348,52 @@ class AuthenticationTests(TestCase):
         self.assertEqual(options["host"], "smtp.gmail.com")
         self.assertEqual(options["port"], 587)
         self.assertTrue(options["use_tls"])
+        self.assertFalse(options["use_ssl"])
+        self.assertEqual(options["timeout"], 30)
         self.assertIn("username", options)
         self.assertIn("password", options)
+
+    def test_email_configuration_strips_safe_whitespace_and_parses_transport_flags(self):
+        with patch.dict(
+            os.environ,
+            {
+                "EMAIL_HOST": " smtp.gmail.com ",
+                "EMAIL_PORT": "587",
+                "EMAIL_HOST_USER": " sender@example.com ",
+                "EMAIL_HOST_PASSWORD": " app-password ",
+                "EMAIL_USE_TLS": " true ",
+                "EMAIL_USE_SSL": " false ",
+                "EMAIL_TIMEOUT": "45",
+            },
+            clear=True,
+        ):
+            configuration = _email_configuration()
+
+        self.assertEqual(configuration["host"], "smtp.gmail.com")
+        self.assertEqual(configuration["username"], "sender@example.com")
+        self.assertEqual(configuration["password"], "app-password")
+        self.assertTrue(configuration["use_tls"])
+        self.assertFalse(configuration["use_ssl"])
+        self.assertEqual(configuration["timeout"], 45)
+
+    def test_production_configuration_rejects_mutually_exclusive_tls_and_ssl(self):
+        with self.assertRaisesMessage(
+            ImproperlyConfigured,
+            "EMAIL_USE_TLS and EMAIL_USE_SSL cannot both be enabled",
+        ):
+            validate_production_configuration(
+                environment="production",
+                secret_key="a-long-production-secret",
+                debug=False,
+                allowed_hosts=["proit.example.com"],
+                email_backend="django.core.mail.backends.smtp.EmailBackend",
+                email_host="smtp.gmail.com",
+                email_username="sender@example.com",
+                email_password="app-password",
+                default_from_email="sender@example.com",
+                email_use_tls=True,
+                email_use_ssl=True,
+            )
 
     def test_postgresql_configuration_requires_ssl_and_health_checks(self):
         settings = _database_settings(

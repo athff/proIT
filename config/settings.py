@@ -114,11 +114,13 @@ def _email_configuration() -> dict:
     )
     return {
         "backend": backend,
-        "host": os.getenv("EMAIL_HOST", "smtp.gmail.com"),
+        "host": os.getenv("EMAIL_HOST", "smtp.gmail.com").strip(),
         "port": int(os.getenv("EMAIL_PORT", "587")),
         "username": os.getenv("EMAIL_HOST_USER", "").strip(),
-        "password": os.getenv("EMAIL_HOST_PASSWORD", ""),
+        "password": os.getenv("EMAIL_HOST_PASSWORD", "").strip(),
         "use_tls": _env_bool("EMAIL_USE_TLS", True),
+        "use_ssl": _env_bool("EMAIL_USE_SSL", False),
+        "timeout": int(os.getenv("EMAIL_TIMEOUT", "30")),
         "from_email": os.getenv(
             "DEFAULT_FROM_EMAIL",
             os.getenv("EMAIL_HOST_USER", ""),
@@ -127,15 +129,20 @@ def _email_configuration() -> dict:
 
 
 def _mailers_configuration(email_configuration: dict) -> dict:
+    backend = email_configuration["backend"]
+    if backend == "django.core.mail.backends.smtp.EmailBackend":
+        backend = "config.email.DiagnosticSMTPEmailBackend"
     return {
         "default": {
-            "BACKEND": email_configuration["backend"],
+            "BACKEND": backend,
             "OPTIONS": {
                 "host": email_configuration["host"],
                 "port": email_configuration["port"],
                 "username": email_configuration["username"],
                 "password": email_configuration["password"],
                 "use_tls": email_configuration["use_tls"],
+                "use_ssl": email_configuration["use_ssl"],
+                "timeout": email_configuration["timeout"],
             },
         }
     }
@@ -152,6 +159,8 @@ def validate_production_configuration(
     email_username: str = "",
     email_password: str = "",
     default_from_email: str = "",
+    email_use_tls: bool = True,
+    email_use_ssl: bool = False,
 ) -> None:
     """Reject insecure or incomplete settings before production startup."""
     if environment != "production":
@@ -166,6 +175,8 @@ def validate_production_configuration(
     if not email_backend or email_backend.endswith("console.EmailBackend"):
         missing.append("EMAIL_BACKEND (non-console)")
     if email_backend.endswith("smtp.EmailBackend"):
+        if email_use_tls and email_use_ssl:
+            missing.append("EMAIL_USE_TLS and EMAIL_USE_SSL cannot both be enabled")
         if not email_host:
             missing.append("EMAIL_HOST")
         if not email_username:
@@ -208,6 +219,8 @@ validate_production_configuration(
     email_username=SMTP_USERNAME,
     email_password=SMTP_PASSWORD,
     default_from_email=DEFAULT_FROM_EMAIL,
+    email_use_tls=EMAIL_CONFIGURATION["use_tls"],
+    email_use_ssl=EMAIL_CONFIGURATION["use_ssl"],
 )
 
 

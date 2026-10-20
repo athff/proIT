@@ -100,7 +100,8 @@ settings; never commit them.
 - Gmail SMTP variables:
   `EMAIL_HOST=smtp.gmail.com`, `EMAIL_PORT=587`, `EMAIL_HOST_USER`,
   `EMAIL_HOST_PASSWORD` (a Gmail App Password, not the normal account
-  password), `EMAIL_USE_TLS=True`, and `DEFAULT_FROM_EMAIL`
+  password), `EMAIL_USE_TLS=True`, `EMAIL_USE_SSL=False`, `EMAIL_TIMEOUT=30`,
+  and `DEFAULT_FROM_EMAIL`. TLS and SSL must not both be enabled.
 - `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` when Google sign-in is enabled
 
 The application keeps PostgreSQL SSL enabled by default

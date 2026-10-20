@@ -337,6 +337,16 @@ class AuthenticationTests(TestCase):
                 },
             )
 
+    def test_loaded_mailers_configuration_has_gmail_smtp_options(self):
+        from config import settings as project_settings
+
+        options = project_settings.MAILERS["default"]["OPTIONS"]
+        self.assertEqual(options["host"], "smtp.gmail.com")
+        self.assertEqual(options["port"], 587)
+        self.assertTrue(options["use_tls"])
+        self.assertIn("username", options)
+        self.assertIn("password", options)
+
     def test_postgresql_configuration_requires_ssl_and_health_checks(self):
         settings = _database_settings(
             "postgresql://user:password@db.example/neondb"

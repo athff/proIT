@@ -102,6 +102,11 @@ settings; never commit them.
   `EMAIL_HOST_PASSWORD` (a Gmail App Password, not the normal account
   password), `EMAIL_USE_TLS=True`, `EMAIL_USE_SSL=False`, `EMAIL_TIMEOUT=30`,
   and `DEFAULT_FROM_EMAIL`. TLS and SSL must not both be enabled.
+- For Vercel, Resend is recommended over direct Gmail SMTP:
+  set `PROIT_EMAIL_BACKEND=resend`, `RESEND_API_KEY` to a Resend API key,
+  and `DEFAULT_FROM_EMAIL` to a verified Resend sender. The optional
+  `RESEND_API_URL` defaults to `https://api.resend.com/emails`. The API key
+  is sent only in the HTTPS authorization header and is never logged.
 - `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` when Google sign-in is enabled
 
 The application keeps PostgreSQL SSL enabled by default

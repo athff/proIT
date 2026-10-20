@@ -18,6 +18,8 @@ from config.settings import (
     _allowed_hosts,
     _database_settings,
     _deployment_environment,
+    _email_configuration,
+    _mailers_configuration,
     _security_settings,
     _static_storage_backend,
     validate_production_configuration,
@@ -276,7 +278,64 @@ class AuthenticationTests(TestCase):
             debug=False,
             allowed_hosts=["proit.example.com"],
             email_backend="django.core.mail.backends.smtp.EmailBackend",
+            email_host="smtp.gmail.com",
+            email_username="sender@example.com",
+            email_password="app-password",
+            default_from_email="sender@example.com",
         )
+
+    def test_production_configuration_rejects_incomplete_smtp(self):
+        with self.assertRaises(ImproperlyConfigured):
+            validate_production_configuration(
+                environment="production",
+                secret_key="a-long-production-secret",
+                debug=False,
+                allowed_hosts=["proit.example.com"],
+                email_backend="django.core.mail.backends.smtp.EmailBackend",
+            )
+
+    def test_gmail_mailer_uses_environment_driven_smtp_options(self):
+        with patch.dict(
+            os.environ,
+            {
+                "PROIT_EMAIL_BACKEND": "django.core.mail.backends.smtp.EmailBackend",
+                "EMAIL_HOST": "smtp.gmail.com",
+                "EMAIL_PORT": "587",
+                "EMAIL_HOST_USER": "sender@example.com",
+                "EMAIL_HOST_PASSWORD": "test-app-password",
+                "EMAIL_USE_TLS": "True",
+                "DEFAULT_FROM_EMAIL": "sender@example.com",
+            },
+            clear=True,
+        ):
+            configuration = _email_configuration()
+            self.assertEqual(configuration["host"], "smtp.gmail.com")
+            self.assertEqual(configuration["port"], 587)
+            self.assertTrue(configuration["use_tls"])
+            self.assertEqual(
+                configuration["username"],
+                "sender@example.com",
+            )
+            self.assertEqual(
+                configuration["from_email"],
+                "sender@example.com",
+            )
+
+    def test_mailers_default_explicitly_defines_smtp_host(self):
+        with patch.dict(os.environ, {}, clear=True):
+            configuration = _email_configuration()
+            mailers = _mailers_configuration(configuration)
+
+            self.assertEqual(
+                mailers["default"]["OPTIONS"],
+                {
+                    "host": "smtp.gmail.com",
+                    "port": 587,
+                    "username": "",
+                    "password": "",
+                    "use_tls": True,
+                },
+            )
 
     def test_postgresql_configuration_requires_ssl_and_health_checks(self):
         settings = _database_settings(

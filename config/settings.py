@@ -107,6 +107,40 @@ def _static_storage_backend(environment: str) -> str:
     return "django.contrib.staticfiles.storage.StaticFilesStorage"
 
 
+def _email_configuration() -> dict:
+    backend = os.getenv(
+        "PROIT_EMAIL_BACKEND",
+        "django.core.mail.backends.console.EmailBackend",
+    )
+    return {
+        "backend": backend,
+        "host": os.getenv("EMAIL_HOST", "smtp.gmail.com"),
+        "port": int(os.getenv("EMAIL_PORT", "587")),
+        "username": os.getenv("EMAIL_HOST_USER", "").strip(),
+        "password": os.getenv("EMAIL_HOST_PASSWORD", ""),
+        "use_tls": _env_bool("EMAIL_USE_TLS", True),
+        "from_email": os.getenv(
+            "DEFAULT_FROM_EMAIL",
+            os.getenv("EMAIL_HOST_USER", ""),
+        ).strip(),
+    }
+
+
+def _mailers_configuration(email_configuration: dict) -> dict:
+    return {
+        "default": {
+            "BACKEND": email_configuration["backend"],
+            "OPTIONS": {
+                "host": email_configuration["host"],
+                "port": email_configuration["port"],
+                "username": email_configuration["username"],
+                "password": email_configuration["password"],
+                "use_tls": email_configuration["use_tls"],
+            },
+        }
+    }
+
+
 def validate_production_configuration(
     *,
     environment: str,
@@ -114,6 +148,10 @@ def validate_production_configuration(
     debug: bool,
     allowed_hosts: list[str],
     email_backend: str,
+    email_host: str = "",
+    email_username: str = "",
+    email_password: str = "",
+    default_from_email: str = "",
 ) -> None:
     """Reject insecure or incomplete settings before production startup."""
     if environment != "production":
@@ -127,6 +165,15 @@ def validate_production_configuration(
         missing.append("ALLOWED_HOSTS")
     if not email_backend or email_backend.endswith("console.EmailBackend"):
         missing.append("EMAIL_BACKEND (non-console)")
+    if email_backend.endswith("smtp.EmailBackend"):
+        if not email_host:
+            missing.append("EMAIL_HOST")
+        if not email_username:
+            missing.append("EMAIL_HOST_USER")
+        if not email_password:
+            missing.append("EMAIL_HOST_PASSWORD")
+        if not default_from_email:
+            missing.append("DEFAULT_FROM_EMAIL")
     if missing:
         raise ImproperlyConfigured(
             "Production configuration is incomplete or insecure: "
@@ -143,16 +190,24 @@ SECRET_KEY = os.getenv("SECRET_KEY") or (
 )
 DEBUG = _env_bool("DEBUG", ENVIRONMENT != "production")
 ALLOWED_HOSTS = _allowed_hosts()
-EMAIL_BACKEND_CONFIG = os.getenv(
-    "PROIT_EMAIL_BACKEND",
-    "django.core.mail.backends.console.EmailBackend",
-)
+EMAIL_CONFIGURATION = _email_configuration()
+EMAIL_BACKEND_CONFIG = EMAIL_CONFIGURATION["backend"]
+SMTP_HOST = EMAIL_CONFIGURATION["host"]
+SMTP_PORT = EMAIL_CONFIGURATION["port"]
+SMTP_USERNAME = EMAIL_CONFIGURATION["username"]
+SMTP_PASSWORD = EMAIL_CONFIGURATION["password"]
+SMTP_USE_TLS = EMAIL_CONFIGURATION["use_tls"]
+DEFAULT_FROM_EMAIL = EMAIL_CONFIGURATION["from_email"]
 validate_production_configuration(
     environment=ENVIRONMENT,
     secret_key=SECRET_KEY,
     debug=DEBUG,
     allowed_hosts=ALLOWED_HOSTS,
     email_backend=EMAIL_BACKEND_CONFIG,
+    email_host=SMTP_HOST,
+    email_username=SMTP_USERNAME,
+    email_password=SMTP_PASSWORD,
+    default_from_email=DEFAULT_FROM_EMAIL,
 )
 
 
@@ -327,8 +382,4 @@ SOCIALACCOUNT_PROVIDERS = {
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-MAILERS = {
-    'default': {
-        'BACKEND': EMAIL_BACKEND_CONFIG,
-    },
-}
+MAILERS = _mailers_configuration(EMAIL_CONFIGURATION)

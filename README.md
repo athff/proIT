@@ -52,6 +52,11 @@ variables and defaults to production mode rather than generating a
 per-process development key. Vercel hostnames are automatically added to
 `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`.
 
+For Gmail, enable 2-Step Verification on the sending Google account, create
+an App Password under Google Account security, and use that 16-character App
+Password as `EMAIL_HOST_PASSWORD`. Do not use the normal Gmail account
+password, and do not commit the App Password.
+
 Do not replace the existing `DATABASE_URL` with a newly provisioned database.
 Review the service settings, configure HTTPS, and run migrations as a separate,
 explicit release step only after the deployment target has been reviewed.
@@ -92,8 +97,10 @@ settings; never commit them.
   `https://your-project.vercel.app`, comma-separated
 - `DATABASE_URL` — the existing Neon PostgreSQL connection string
 - `PROIT_EMAIL_BACKEND` — a non-console backend in production
-- Provider-specific email variables (`EMAIL_HOST`, `EMAIL_PORT`,
-  `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, and `EMAIL_USE_TLS`) as required
+- Gmail SMTP variables:
+  `EMAIL_HOST=smtp.gmail.com`, `EMAIL_PORT=587`, `EMAIL_HOST_USER`,
+  `EMAIL_HOST_PASSWORD` (a Gmail App Password, not the normal account
+  password), `EMAIL_USE_TLS=True`, and `DEFAULT_FROM_EMAIL`
 - `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` when Google sign-in is enabled
 
 The application keeps PostgreSQL SSL enabled by default

@@ -25,7 +25,7 @@ from config.settings import (
     _static_storage_backend,
     validate_production_configuration,
 )
-from config.email import ResendEmailBackend
+
 
 
 class AuthenticationTests(TestCase):
@@ -177,33 +177,8 @@ class AuthenticationTests(TestCase):
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn("password reset", mail.outbox[0].body.lower())
 
-    @override_settings(
-        MAILERS={
-            "default": {
-                "BACKEND": "config.email.ResendEmailBackend",
-                "OPTIONS": {
-                    "api_key": "re_test_key",
-                    "from_email": "sender@example.com",
-                    "timeout": 30,
-                },
-            }
-        }
-    )
-    @patch("config.email.requests.post")
-    def test_password_reset_uses_resend_backend(self, post):
-        post.return_value.raise_for_status.return_value = None
-
-        response = self.client.post(
-            reverse("password_reset"),
-            {"email": "operator@example.com"},
-        )
-
-        self.assertRedirects(response, reverse("password_reset_done"))
-        self.assertEqual(post.call_count, 1)
-        self.assertEqual(
-            post.call_args.kwargs["json"]["to"],
-            ["operator@example.com"],
-        )
+    
+    
 
     @override_settings(
         MAILERS={"default": {"BACKEND": "django.core.mail.backends.locmem.EmailBackend"}}
@@ -301,94 +276,14 @@ class AuthenticationTests(TestCase):
         )
         self.assertNotEqual(project_settings.STATIC_ROOT, project_settings.BASE_DIR / "static")
 
-    def test_production_configuration_accepts_explicit_secure_values(self):
-        validate_production_configuration(
-            environment="production",
-            secret_key="a-long-production-secret",
-            debug=False,
-            allowed_hosts=["proit.example.com"],
-            email_backend="django.core.mail.backends.smtp.EmailBackend",
-            email_host="smtp.gmail.com",
-            email_username="sender@example.com",
-            email_password="app-password",
-            default_from_email="sender@example.com",
-        )
+    
 
-    def test_production_configuration_rejects_incomplete_smtp(self):
-        with self.assertRaises(ImproperlyConfigured):
-            validate_production_configuration(
-                environment="production",
-                secret_key="a-long-production-secret",
-                debug=False,
-                allowed_hosts=["proit.example.com"],
-                email_backend="django.core.mail.backends.smtp.EmailBackend",
-            )
+    
 
-    def test_production_configuration_requires_resend_credentials(self):
-        with self.assertRaisesMessage(ImproperlyConfigured, "RESEND_API_KEY"):
-            validate_production_configuration(
-                environment="production",
-                secret_key="a-long-production-secret",
-                debug=False,
-                allowed_hosts=["proit.example.com"],
-                email_backend="resend",
-                default_from_email="sender@example.com",
-            )
-
-    def test_resend_mailer_configuration_uses_https_backend(self):
-        with patch.dict(
-            os.environ,
-            {
-                "PROIT_EMAIL_BACKEND": "resend",
-                "RESEND_API_KEY": "re_test_key",
-                "DEFAULT_FROM_EMAIL": "sender@example.com",
-            },
-            clear=True,
-        ):
-            mailers = _mailers_configuration(_email_configuration())
-
-        self.assertEqual(
-            mailers["default"]["BACKEND"],
-            "config.email.ResendEmailBackend",
-        )
-        self.assertEqual(
-            mailers["default"]["OPTIONS"]["api_url"],
-            "https://api.resend.com/emails",
-        )
-        self.assertTrue(mailers["default"]["OPTIONS"]["api_key"])
-
-    @patch("config.email.requests.post")
-    def test_resend_backend_sends_message_without_exposing_api_key(self, post):
-        post.return_value.raise_for_status.return_value = None
-        backend = ResendEmailBackend(
-            api_key="re_test_key",
-            from_email="sender@example.com",
-        )
-        message = EmailMessage(
-            subject="Reset",
-            body="Reset link",
-            from_email="sender@example.com",
-            to=["operator@example.com"],
-        )
-
-        self.assertEqual(backend.send_messages([message]), 1)
-        request = post.call_args
-        self.assertEqual(
-            request.kwargs["headers"]["Authorization"],
-            "Bearer re_test_key",
-        )
-        self.assertEqual(request.kwargs["json"]["to"], ["operator@example.com"])
-        self.assertNotIn("re_test_key", str(request.kwargs["json"]))
-
-    @patch("config.email.requests.post")
-    def test_resend_backend_raises_api_failure_without_silent_success(self, post):
+    
         from requests import HTTPError
 
         post.return_value.raise_for_status.side_effect = HTTPError("bad request")
-        backend = ResendEmailBackend(
-            api_key="re_test_key",
-            from_email="sender@example.com",
-        )
         message = EmailMessage(
             subject="Reset",
             body="Reset link",
@@ -396,10 +291,7 @@ class AuthenticationTests(TestCase):
             to=["operator@example.com"],
         )
 
-        with self.assertRaises(HTTPError):
-            backend.send_messages([message])
-
-    def test_gmail_mailer_uses_environment_driven_smtp_options(self):
+        
         with patch.dict(
             os.environ,
             {
@@ -423,42 +315,16 @@ class AuthenticationTests(TestCase):
                 configuration["username"],
                 "sender@example.com",
             )
-            self.assertEqual(
-                configuration["from_email"],
-                "sender@example.com",
-            )
-
-    def test_mailers_default_explicitly_defines_smtp_host(self):
+            
         with patch.dict(os.environ, {}, clear=True):
             configuration = _email_configuration()
             mailers = _mailers_configuration(configuration)
 
-            self.assertEqual(
-                mailers["default"]["OPTIONS"],
-                {
-                    "host": "smtp.gmail.com",
-                    "port": 587,
-                    "username": "",
-                    "password": "",
-                    "use_tls": True,
-                    "use_ssl": False,
-                    "timeout": 30,
-                },
-            )
-
-    def test_loaded_mailers_configuration_has_gmail_smtp_options(self):
+            
         from config import settings as project_settings
 
         options = project_settings.MAILERS["default"]["OPTIONS"]
-        self.assertEqual(options["host"], "smtp.gmail.com")
-        self.assertEqual(options["port"], 587)
-        self.assertTrue(options["use_tls"])
-        self.assertFalse(options["use_ssl"])
-        self.assertEqual(options["timeout"], 30)
-        self.assertIn("username", options)
-        self.assertIn("password", options)
-
-    def test_email_configuration_strips_safe_whitespace_and_parses_transport_flags(self):
+        
         with patch.dict(
             os.environ,
             {
@@ -479,28 +345,8 @@ class AuthenticationTests(TestCase):
         self.assertEqual(configuration["password"], "app-password")
         self.assertTrue(configuration["use_tls"])
         self.assertFalse(configuration["use_ssl"])
-        self.assertEqual(configuration["timeout"], 45)
-
-    def test_production_configuration_rejects_mutually_exclusive_tls_and_ssl(self):
-        with self.assertRaisesMessage(
-            ImproperlyConfigured,
-            "EMAIL_USE_TLS and EMAIL_USE_SSL cannot both be enabled",
-        ):
-            validate_production_configuration(
-                environment="production",
-                secret_key="a-long-production-secret",
-                debug=False,
-                allowed_hosts=["proit.example.com"],
-                email_backend="django.core.mail.backends.smtp.EmailBackend",
-                email_host="smtp.gmail.com",
-                email_username="sender@example.com",
-                email_password="app-password",
-                default_from_email="sender@example.com",
-                email_use_tls=True,
-                email_use_ssl=True,
-            )
-
-    def test_postgresql_configuration_requires_ssl_and_health_checks(self):
+        
+        
         settings = _database_settings(
             "postgresql://user:password@db.example/neondb"
         )

@@ -3,6 +3,7 @@
 import base64
 import logging
 import smtplib
+import threading
 
 import requests
 from django.core.mail.backends.smtp import EmailBackend
@@ -10,14 +11,20 @@ from django.core.mail.backends.base import BaseEmailBackend
 
 logger = logging.getLogger(__name__)
 
+_email_backend_lock = threading.Lock()
+
 
 class DiagnosticSMTPEmailBackend(EmailBackend):
     """Log sanitized SMTP connection failures before preserving Django errors."""
 
     def _log_failure(self, stage: str, error: Exception) -> None:
+        # Extract SMTP response code/message if available, without logging credentials
+        smtp_code = getattr(error, "smtp_code", None)
+        smtp_message = getattr(error, "smtp_error", None) if smtp_code is not None else None
+
         logger.error(
             "SMTP %s failed: host_configured=%s port=%s use_tls=%s "
-            "use_ssl=%s timeout=%s error=%s",
+            "use_ssl=%s timeout=%s error=%s[%s]",
             stage,
             bool(self.host),
             self.port,
@@ -25,6 +32,7 @@ class DiagnosticSMTPEmailBackend(EmailBackend):
             self.use_ssl,
             self.timeout,
             type(error).__name__,
+            f"{smtp_code}: {smtp_message}" if smtp_message else type(error).__name__,
         )
 
     def open(self):
@@ -41,11 +49,15 @@ class DiagnosticSMTPEmailBackend(EmailBackend):
             raise
 
     def send_messages(self, email_messages):
-        try:
-            return super().send_messages(email_messages)
-        except smtplib.SMTPException as error:
-            self._log_failure("message_delivery", error)
-            raise
+        # Acquire lock to ensure only one SMTP connection/Auth attempt at a time
+        # This prevents Gmail from closing connections when multiple emails
+        # are sent in rapid succession (common with password reset flows)
+        with _email_backend_lock:
+            try:
+                return super().send_messages(email_messages)
+            except smtplib.SMTPException as error:
+                self._log_failure("message_delivery", error)
+                raise
 
 
 class ResendEmailBackend(BaseEmailBackend):
@@ -135,3 +147,5 @@ class ResendEmailBackend(BaseEmailBackend):
             if self._send(message):
                 sent += 1
         return sent
+
+

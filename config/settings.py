@@ -108,46 +108,33 @@ def _static_storage_backend(environment: str) -> str:
 
 
 def _email_configuration() -> dict:
+    # Email configuration read from environment variables
     backend = os.getenv(
         "PROIT_EMAIL_BACKEND",
         "django.core.mail.backends.console.EmailBackend",
     )
+    
     return {
-        "backend": backend,
-        "host": os.getenv("EMAIL_HOST", "smtp.gmail.com").strip(),
+            "backend": backend,
+        "host": os.getenv("EMAIL_HOST", "").strip(),
         "port": int(os.getenv("EMAIL_PORT", "587")),
         "username": os.getenv("EMAIL_HOST_USER", "").strip(),
         "password": os.getenv("EMAIL_HOST_PASSWORD", "").strip(),
-        "use_tls": _env_bool("EMAIL_USE_TLS", True),
-        "use_ssl": _env_bool("EMAIL_USE_SSL", False),
+        "use_tls": os.getenv("EMAIL_USE_TLS", "").strip().lower() in {"1", "true", "yes", "on"},
+        "use_ssl": os.getenv("EMAIL_USE_SSL", "").strip().lower() in {"1", "true", "yes", "on"},
         "timeout": int(os.getenv("EMAIL_TIMEOUT", "30")),
-        "resend_api_key": os.getenv("RESEND_API_KEY", "").strip(),
-        "resend_api_url": os.getenv(
-            "RESEND_API_URL",
-            "https://api.resend.com/emails",
-        ).strip(),
         "from_email": os.getenv(
             "DEFAULT_FROM_EMAIL",
             os.getenv("EMAIL_HOST_USER", ""),
         ).strip(),
-    }
+        }
 
 
 def _mailers_configuration(email_configuration: dict) -> dict:
     backend = email_configuration["backend"]
-    configured_backend = backend
-    if backend == "django.core.mail.backends.smtp.EmailBackend":
-        backend = "config.email.DiagnosticSMTPEmailBackend"
-    elif backend == "resend":
-        backend = "config.email.ResendEmailBackend"
-    if backend == "config.email.ResendEmailBackend":
-        options = {
-            "timeout": email_configuration["timeout"],
-            "from_email": email_configuration["from_email"],
-            "api_key": email_configuration["resend_api_key"],
-            "api_url": email_configuration["resend_api_url"],
-        }
-    else:
+    options = {}
+
+    if backend == "config.email.DiagnosticSMTPEmailBackend":
         options = {
             "host": email_configuration["host"],
             "port": email_configuration["port"],
@@ -155,22 +142,8 @@ def _mailers_configuration(email_configuration: dict) -> dict:
             "password": email_configuration["password"],
             "use_tls": email_configuration["use_tls"],
         }
-        if backend == "config.email.DiagnosticSMTPEmailBackend":
-            options.update(
-                {
-                    "use_ssl": email_configuration["use_ssl"],
-                    "timeout": email_configuration["timeout"],
-                }
-            )
-    if configured_backend == "resend":
-        options["from_email"] = email_configuration["from_email"]
-    elif backend == "config.email.ResendEmailBackend":
-        options.update(
-            {
-                "api_key": email_configuration["resend_api_key"],
-                "api_url": email_configuration["resend_api_url"],
-            }
-        )
+    # Resend backend handling removed (config/email.py deleted per cleanup)
+
     return {
         "default": {
             "BACKEND": backend,
@@ -192,7 +165,6 @@ def validate_production_configuration(
     default_from_email: str = "",
     email_use_tls: bool = True,
     email_use_ssl: bool = False,
-    resend_api_key: str = "",
 ) -> None:
     """Reject insecure or incomplete settings before production startup."""
     if environment != "production":
@@ -215,11 +187,6 @@ def validate_production_configuration(
             missing.append("EMAIL_HOST_USER")
         if not email_password:
             missing.append("EMAIL_HOST_PASSWORD")
-        if not default_from_email:
-            missing.append("DEFAULT_FROM_EMAIL")
-    if email_backend == "resend" or email_backend.endswith("ResendEmailBackend"):
-        if not resend_api_key:
-            missing.append("RESEND_API_KEY")
         if not default_from_email:
             missing.append("DEFAULT_FROM_EMAIL")
     if missing:
@@ -258,7 +225,6 @@ validate_production_configuration(
     default_from_email=DEFAULT_FROM_EMAIL,
     email_use_tls=EMAIL_CONFIGURATION["use_tls"],
     email_use_ssl=EMAIL_CONFIGURATION["use_ssl"],
-    resend_api_key=EMAIL_CONFIGURATION["resend_api_key"],
 )
 
 

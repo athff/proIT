@@ -1,6 +1,7 @@
 """Project-level application views."""
 
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import PasswordResetView
 from django.shortcuts import render
 
 from assets.models import Asset
@@ -9,6 +10,12 @@ from dataio.services.registry import SPEC_BY_KEY
 from people.models import Employee
 from vendors.models import Vendor
 
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+from django.contrib.auth.tokens import default_token_generator
+from django.urls import reverse
+from django.contrib.auth import get_user_model
+from datetime import datetime
 
 @login_required
 def dashboard(request):
@@ -83,3 +90,50 @@ def dashboard(request):
             ),
         },
     )
+class ProITPasswordResetView(PasswordResetView):
+    """Custom password reset view that sends branded HTML and plain-text emails."""
+
+    def send_mail(self, subject, email_from, to_email, context):
+        """Send password reset email with both HTML and plain-text alternatives."""
+        # Ensure reset_url is present in the context
+        if "reset_url" not in context:
+            # The e‑mail that triggered the reset is obtained from the POST data
+            # (the form always submits the e‑mail address). Use it to look up the user.
+            email = context.get("email") or self.request.POST.get("email")
+            if email:
+                User = get_user_model()
+                try:
+                    user = User.objects.get(email=email)
+                except User.DoesNotExist:
+                    user = None
+                if user:
+                    uidb64 = urlsafe_base64_encode(force_bytes(user.pk)).decode()
+                    token = default_token_generator.make_token(user)
+                    rel_url = reverse("password_reset_confirm", kwargs={"uidb64": uidb64, "token": token})
+                    scheme = self.request.scheme
+                    domain = self.request.get_host()
+                    context["reset_url"] = f"{scheme}://{domain}{rel_url}"
+        # Ensure current_year is present in the context
+        if "current_year" not in context:
+            context["current_year"] = datetime.now().year
+
+        # Render the HTML email template
+        html_template = render_to_string(
+            "registration/password_reset_email.html", context
+        )
+        # Render the plain-text email template
+        text_template = render_to_string(
+            "registration/password_reset_email.txt", context
+        )
+        # Create the email message with both alternatives
+        message = EmailMessage(
+            subject,
+            text_template,
+            email_from,
+            [to_email],
+        )
+        message.content_subtype = "text/plain"
+        message.alternatives = [
+            ("text/html", html_template)
+        ]
+        message.send()

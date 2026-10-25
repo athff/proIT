@@ -54,4 +54,4 @@ class ReportTests(TestCase):
         self.assertEqual(self.client.get(reverse("reports")).status_code, 200)
         self.client.logout()
         response = self.client.get(reverse("reports"))
-        self.assertRedirects(response, f"/accounts/login/?next={reverse('reports')}")
+        self.assertRedirects(response, "/accounts/login/?next=/reports/")

@@ -127,7 +127,7 @@ class AuthenticationTests(TestCase):
         response = self.client.get(reverse("dashboard"))
         self.assertRedirects(
             response,
-            f"{reverse('login')}?next={reverse('dashboard')}",
+            "/accounts/login/?next=/dashboard/",
         )
 
     def test_authenticated_user_can_access_dashboard(self):
@@ -197,7 +197,7 @@ class AuthenticationTests(TestCase):
         )
         self.assertRedirects(
             response,
-            f"{reverse('login')}?next={reverse('csv-template', args=['departments'])}",
+            "/accounts/login/?next=/dataio/template/departments/",
         )
 
     def test_production_configuration_rejects_insecure_defaults(self):
@@ -281,15 +281,6 @@ class AuthenticationTests(TestCase):
     
 
     
-        from requests import HTTPError
-
-        post.return_value.raise_for_status.side_effect = HTTPError("bad request")
-        message = EmailMessage(
-            subject="Reset",
-            body="Reset link",
-            from_email="sender@example.com",
-            to=["operator@example.com"],
-        )
 
         
         with patch.dict(

@@ -2,7 +2,7 @@
 
 ProIT is a Django-based IT Asset Management application for managing assets,
 employees, locations, departments, vendors, assignments, authentication, and
-role-based access.
+role-based access..
 
 ## Local development
 

@@ -19,12 +19,15 @@
             <section class="oauth-card" aria-labelledby="oauth-heading">
                 {% if messages %}
                     {% for message in messages %}
-                        <div class="oauth-message" role="alert">{{ message }}</div>
+                        <div class="oauth-message oauth-message-{{ message.tags|default:'info' }}" role="status">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="m7 12 3 3 7-7"/><circle cx="12" cy="12" r="9"/></svg>
+                            <span>{{ message }}</span>
+                        </div>
                     {% endfor %}
                 {% endif %}
                 {% block content %}{% endblock %}
             </section>
-            <p class="oauth-footer">Secure access to your proIT workspace</p>
+            <p class="oauth-footer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg><span>Secure access to your proIT workspace</span></p>
         </div>
     </main>
     {% block extra_body %}{% endblock %}

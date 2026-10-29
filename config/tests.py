@@ -1,5 +1,6 @@
 """Authentication and dashboard tests."""
 
+from io import BytesIO
 import os
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
@@ -7,13 +8,16 @@ from django.core import mail
 from django.core.mail import EmailMessage
 from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase, override_settings
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.template.loader import get_template
 from unittest.mock import patch
+from PIL import Image
 
 from assets.models import Asset, AssetModel, Category, Manufacturer
 from dataio.services.authorization import VIEWER, configure_role_groups
 from people.models import Employee
+from people.models import AccountProfile
 from vendors.models import Vendor
 from config.settings import (
     _allowed_hosts,
@@ -108,6 +112,29 @@ class AuthenticationTests(TestCase):
         self.assertEqual(user.groups.count(), 0)
         self.assertTrue(response.wsgi_request.user.is_authenticated)
 
+    @override_settings(
+        AUTHENTICATION_BACKENDS=[
+            "django.contrib.auth.backends.ModelBackend",
+            "allauth.account.auth_backends.AuthenticationBackend",
+        ]
+    )
+    def test_signup_logs_in_with_multiple_authentication_backends(self):
+        response = self.client.post(
+            reverse("signup"),
+            {
+                "first_name": "Backend",
+                "last_name": "Test",
+                "username": "backend-test",
+                "email": "backend-test@example.com",
+                "password1": "New-secure-password-123",
+                "password2": "New-secure-password-123",
+            },
+        )
+
+        self.assertRedirects(response, reverse("dashboard"))
+        self.assertTrue(response.wsgi_request.user.is_authenticated)
+        self.assertEqual(response.wsgi_request.user.username, "backend-test")
+
     def test_signup_rejects_invalid_passwords(self):
         response = self.client.post(
             reverse("signup"),
@@ -129,6 +156,86 @@ class AuthenticationTests(TestCase):
             response,
             "/accounts/login/?next=/dashboard/",
         )
+
+    def test_root_redirects_anonymous_user_to_login(self):
+        response = self.client.get("/")
+
+        self.assertRedirects(response, reverse("login"))
+
+    def test_root_redirects_authenticated_user_to_dashboard(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get("/")
+
+        self.assertRedirects(response, reverse("dashboard"))
+
+    def test_account_dropdown_contains_connected_destinations(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("dashboard"))
+
+        self.assertContains(response, reverse("profile-account"))
+        self.assertContains(response, reverse("password_change"))
+        self.assertContains(response, reverse("assets:ticket-create"))
+        self.assertContains(response, reverse("assets:ticket-list"))
+        self.assertNotContains(response, reverse("admin-panel"))
+        self.assertContains(response, "Signed in securely")
+
+    def test_admin_account_dropdown_hides_end_user_ticket_actions(self):
+        self.user.is_staff = True
+        self.user.is_superuser = True
+        self.user.save(update_fields=("is_staff", "is_superuser"))
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("dashboard"))
+
+        self.assertContains(response, reverse("admin-panel"))
+        self.assertNotContains(response, reverse("assets:ticket-create"))
+        self.assertNotContains(response, reverse("assets:ticket-list"))
+        self.assertNotContains(response, "Raise support ticket")
+        self.assertNotContains(response, "My tickets")
+
+    def test_profile_update_saves_identity_and_processed_avatar(self):
+        image_bytes = BytesIO()
+        Image.new("RGB", (420, 260), "#2f6fed").save(image_bytes, format="PNG")
+        avatar = SimpleUploadedFile(
+            "avatar.png",
+            image_bytes.getvalue(),
+            content_type="image/png",
+        )
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("profile-account"),
+            {
+                "first_name": "Updated",
+                "last_name": "Operator",
+                "email": "updated-operator@example.com",
+                "avatar": avatar,
+            },
+        )
+
+        self.assertRedirects(response, reverse("profile-account"))
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.get_full_name(), "Updated Operator")
+        self.assertEqual(self.user.email, "updated-operator@example.com")
+        profile = AccountProfile.objects.get(user=self.user)
+        self.assertTrue(profile.avatar_data_uri.startswith("data:image/webp;base64,"))
+
+    def test_admin_panel_is_restricted_and_shows_management_sections(self):
+        self.client.force_login(self.user)
+        self.assertEqual(self.client.get(reverse("admin-panel")).status_code, 403)
+
+        self.user.is_staff = True
+        self.user.is_superuser = True
+        self.user.save(update_fields=("is_staff", "is_superuser"))
+        response = self.client.get(reverse("admin-panel"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "User accounts")
+        self.assertContains(response, "Roles &amp; permissions")
+        self.assertContains(response, "System summary")
+        self.assertContains(response, reverse("admin:auth_user_changelist"))
 
     def test_authenticated_user_can_access_dashboard(self):
         self.client.force_login(self.user)

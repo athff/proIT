@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Print QR label · {{ asset.asset_tag }} | proIT{% endblock %}
+{% block extra_styles %}<link rel="stylesheet" href="{% static 'css/asset-label.css' %}">{% endblock %}
+{% block content %}
+<section class="label-workspace" aria-labelledby="label-heading">
+    <header class="label-toolbar">
+        <div>
+            <span class="eyebrow">Asset identification</span>
+            <h1 id="label-heading">Print QR label</h1>
+            <p class="subtle">Print this label and attach it to the matching device.</p>
+        </div>
+        <div class="label-actions">
+            <a class="label-back" href="{% url 'assets:detail' asset.pk %}">Back to asset</a>
+            <button class="label-print" type="button" onclick="window.print()">Print label</button>
+        </div>
+    </header>
+
+    <div class="label-stage">
+        <article class="asset-label" aria-label="Printable QR label for {{ asset.asset_tag }}">
+            <div class="label-qr-wrap">
+                <img class="label-qr" src="{{ qr_data_uri }}" alt="QR code containing the identity of asset {{ asset.asset_tag }}">
+            </div>
+            <div class="label-copy">
+                <div class="label-brand">proIT <span>ASSET</span></div>
+                <h2>{{ asset.model.name }}</h2>
+                <p class="label-maker">{{ asset.model.manufacturer.name }}</p>
+                <dl>
+                    <div><dt>Asset tag</dt><dd>{{ asset.asset_tag }}</dd></div>
+                    <div><dt>Serial</dt><dd>{{ asset.serial_number }}</dd></div>
+                </dl>
+            </div>
+        </article>
+    </div>
+
+    <details class="label-payload">
+        <summary>QR code contents</summary>
+        <pre>{{ qr_payload }}</pre>
+    </details>
+</section>
+{% endblock %}

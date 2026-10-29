@@ -1,10 +1,115 @@
 {% extends "base.html" %}
 {% block title %}Reports | proIT{% endblock %}
-{% block extra_styles %}<style>
-.report-heading{margin-bottom:24px}.report-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.report-card{min-height:230px}.report-card h2{margin-bottom:7px}.report-card p{color:var(--muted);font-size:12px}.report-list{display:grid;gap:13px;margin-top:18px}.report-row{display:grid;grid-template-columns:110px 1fr 34px;align-items:center;gap:10px;color:var(--muted);font-size:11px}.report-track{height:8px;overflow:hidden;border-radius:8px;background:#edf1f7}.report-fill{height:100%;border-radius:inherit;background:var(--blue)}.report-number{color:var(--ink);font-weight:800;text-align:right}.report-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}.report-stat{padding:17px}.report-stat-label{color:var(--muted);font-size:11px}.report-stat-value{margin-top:8px;font-size:24px;font-weight:800}@media(max-width:760px){.report-grid{grid-template-columns:1fr}.report-summary{grid-template-columns:1fr 1fr}.report-row{grid-template-columns:90px 1fr 28px}}@media(max-width:420px){.report-summary{grid-template-columns:1fr}}
-</style>{% endblock %}
+{% block extra_styles %}
+<style>
+    .report-heading { margin-bottom:24px; }
+    .report-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; }
+    .report-card { min-height:230px; }
+    .report-card h2 { margin-bottom:7px; }
+    .report-card > p { color:var(--muted); font-size:12px; }
+    .report-list { display:grid; gap:14px; margin-top:20px; }
+    .report-row { display:grid; grid-template-columns:130px 1fr 38px; align-items:center; gap:11px; color:var(--muted); font-size:11px; }
+    .report-label { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .report-track { display:block; position:relative; height:11px; overflow:hidden; border:1px solid #e8edf5; border-radius:20px; background:#f0f3f8; box-shadow:inset 0 1px 2px #17233f0d; }
+    .report-fill { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,#6f9cff,var(--blue)); box-shadow:0 1px 3px #2f6fed33; transition:width .4s ease; }
+    .report-number { min-width:30px; color:var(--ink); font-size:12px; font-weight:800; text-align:right; }
+    .report-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
+    .report-stat { padding:17px; }
+    .report-stat-label { color:var(--muted); font-size:11px; }
+    .report-stat-value { margin-top:8px; font-size:24px; font-weight:800; }
+    .report-status .report-row:nth-child(2) .report-fill { background:linear-gradient(90deg,#49c99b,var(--green)); }
+    .report-status .report-row:nth-child(3) .report-fill { background:linear-gradient(90deg,#f5bd68,var(--orange)); }
+    .report-status .report-row:nth-child(4) .report-fill { background:linear-gradient(90deg,#b8c1d1,#8290a7); }
+    .report-status .report-row:nth-child(5) .report-fill { background:linear-gradient(90deg,#ef8d8d,var(--red)); }
+    .report-category .report-fill { background:linear-gradient(90deg,#748cf5,#5656d8); }
+    .report-location .report-fill { background:linear-gradient(90deg,#58c9d9,#2695ad); }
+    .report-coverage .report-row:first-child .report-fill { background:linear-gradient(90deg,#49c99b,var(--green)); }
+    .report-coverage .report-row:last-child .report-fill { background:linear-gradient(90deg,#6f9cff,var(--blue)); }
+    @media(max-width:760px) { .report-grid { grid-template-columns:1fr; } .report-summary { grid-template-columns:1fr 1fr; } .report-row { grid-template-columns:105px 1fr 32px; } }
+    @media(max-width:420px) { .report-summary { grid-template-columns:1fr; } .report-row { grid-template-columns:90px 1fr 30px; } }
+</style>
+{% endblock %}
 {% block content %}
-<section class="report-heading"><div class="eyebrow">Analytics</div><h1>Reports</h1><p class="subtle">Database-derived summaries of your current IT inventory.</p></section>
-<section class="report-summary"><article class="stat-card report-stat"><div class="report-stat-label">Total assets</div><div class="report-stat-value">{{ total }}</div></article><article class="stat-card report-stat"><div class="report-stat-label">Assigned assets</div><div class="report-stat-value">{{ assigned_count }}</div></article><article class="stat-card report-stat"><div class="report-stat-label">Available assets</div><div class="report-stat-value">{{ available_count }}</div></article></section>
-<section class="report-grid"><article class="panel report-card"><h2>Status breakdown</h2><p>Assets grouped by their current operational status.</p><div class="report-list">{% for row in status_rows %}<div class="report-row"><span>{{ row.label }}</span><span class="report-track"><span class="report-fill" style="width:{{ row.percent }}%"></span></span><span class="report-number">{{ row.count }}</span></div>{% empty %}<div class="empty">No assets to summarize.</div>{% endfor %}</div></article><article class="panel report-card"><h2>By category</h2><p>Inventory distribution across asset categories.</p><div class="report-list">{% for row in category_rows %}<div class="report-row"><span>{{ row.model__category__name|default:"Uncategorized" }}</span><span class="report-track"><span class="report-fill" style="width:{% widthratio row.count total 100 %}%"></span></span><span class="report-number">{{ row.count }}</span></div>{% empty %}<div class="empty">No category data available.</div>{% endfor %}</div></article><article class="panel report-card"><h2>By location</h2><p>Inventory distribution across recorded locations.</p><div class="report-list">{% for row in location_rows %}<div class="report-row"><span>{{ row.location__name|default:"Unassigned" }}</span><span class="report-track"><span class="report-fill" style="width:{% widthratio row.count total 100 %}%"></span></span><span class="report-number">{{ row.count }}</span></div>{% empty %}<div class="empty">No location data available.</div>{% endfor %}</div></article><article class="panel report-card"><h2>Assignment coverage</h2><p>Compare assets assigned to employees with assets ready for use.</p><div class="report-list"><div class="report-row"><span>Assigned</span><span class="report-track"><span class="report-fill" style="width:{% widthratio assigned_count total 100 %}%"></span></span><span class="report-number">{{ assigned_count }}</span></div><div class="report-row"><span>Available</span><span class="report-track"><span class="report-fill" style="width:{% widthratio available_count total 100 %}%"></span></span><span class="report-number">{{ available_count }}</span></div></div></article></section>
+<section class="report-heading">
+    <div class="eyebrow">Analytics</div>
+    <h1>Reports</h1>
+    <p class="subtle">Database-derived summaries of your current IT inventory.</p>
+</section>
+
+<section class="report-summary" aria-label="Inventory summary">
+    <article class="stat-card report-stat"><div class="report-stat-label">Total assets</div><div class="report-stat-value">{{ total }}</div></article>
+    <article class="stat-card report-stat"><div class="report-stat-label">Assigned assets</div><div class="report-stat-value">{{ assigned_count }}</div></article>
+    <article class="stat-card report-stat"><div class="report-stat-label">Available assets</div><div class="report-stat-value">{{ available_count }}</div></article>
+</section>
+
+<section class="report-grid">
+    <article class="panel report-card report-status">
+        <h2>Status breakdown</h2>
+        <p>Assets grouped by their current operational status.</p>
+        <div class="report-list">
+            {% for row in status_rows %}
+            <div class="report-row">
+                <span class="report-label" title="{{ row.label }}">{{ row.label }}</span>
+                <span class="report-track" role="progressbar" aria-label="{{ row.label }} assets" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ row.percent }}" title="{{ row.count }} of {{ total }} assets">
+                    <span class="report-fill" style="width:{{ row.percent }}%"></span>
+                </span>
+                <span class="report-number">{{ row.count }}</span>
+            </div>
+            {% empty %}<div class="empty">No assets to summarize.</div>{% endfor %}
+        </div>
+    </article>
+
+    <article class="panel report-card report-category">
+        <h2>By category</h2>
+        <p>Inventory distribution across asset categories.</p>
+        <div class="report-list">
+            {% for row in category_rows %}
+            <div class="report-row">
+                <span class="report-label" title="{{ row.model__category__name|default:'Uncategorized' }}">{{ row.model__category__name|default:"Uncategorized" }}</span>
+                <span class="report-track" role="progressbar" aria-label="{{ row.model__category__name|default:'Uncategorized' }} assets" aria-valuemin="0" aria-valuemax="{{ total }}" aria-valuenow="{{ row.count }}" title="{{ row.count }} of {{ total }} assets">
+                    <span class="report-fill" style="width:{% widthratio row.count total 100 %}%"></span>
+                </span>
+                <span class="report-number">{{ row.count }}</span>
+            </div>
+            {% empty %}<div class="empty">No category data available.</div>{% endfor %}
+        </div>
+    </article>
+
+    <article class="panel report-card report-location">
+        <h2>By location</h2>
+        <p>Inventory distribution across recorded locations.</p>
+        <div class="report-list">
+            {% for row in location_rows %}
+            <div class="report-row">
+                <span class="report-label" title="{{ row.location__name|default:'Unassigned' }}">{{ row.location__name|default:"Unassigned" }}</span>
+                <span class="report-track" role="progressbar" aria-label="{{ row.location__name|default:'Unassigned' }} assets" aria-valuemin="0" aria-valuemax="{{ total }}" aria-valuenow="{{ row.count }}" title="{{ row.count }} of {{ total }} assets">
+                    <span class="report-fill" style="width:{% widthratio row.count total 100 %}%"></span>
+                </span>
+                <span class="report-number">{{ row.count }}</span>
+            </div>
+            {% empty %}<div class="empty">No location data available.</div>{% endfor %}
+        </div>
+    </article>
+
+    <article class="panel report-card report-coverage">
+        <h2>Assignment coverage</h2>
+        <p>Compare assets assigned to employees with assets ready for use.</p>
+        <div class="report-list">
+            <div class="report-row">
+                <span class="report-label">Assigned</span>
+                <span class="report-track" role="progressbar" aria-label="Assigned assets" aria-valuemin="0" aria-valuemax="{{ total }}" aria-valuenow="{{ assigned_count }}" title="{{ assigned_count }} of {{ total }} assets">
+                    <span class="report-fill" style="width:{% widthratio assigned_count total 100 %}%"></span>
+                </span>
+                <span class="report-number">{{ assigned_count }}</span>
+            </div>
+            <div class="report-row">
+                <span class="report-label">Available</span>
+                <span class="report-track" role="progressbar" aria-label="Available assets" aria-valuemin="0" aria-valuemax="{{ total }}" aria-valuenow="{{ available_count }}" title="{{ available_count }} of {{ total }} assets">
+                    <span class="report-fill" style="width:{% widthratio available_count total 100 %}%"></span>
+                </span>
+                <span class="report-number">{{ available_count }}</span>
+            </div>
+        </div>
+    </article>
+</section>
 {% endblock %}

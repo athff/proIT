@@ -1,7 +1,23 @@
 """People app models: Department, Location, Employee."""
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+
+
+class AccountProfile(models.Model):
+    """Application profile details that extend Django's user account."""
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="account_profile",
+    )
+    avatar_data_uri = models.TextField(blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self) -> str:
+        return f"Profile for {self.user.get_username()}"
 
 
 class Department(models.Model):

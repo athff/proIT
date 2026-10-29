@@ -1,0 +1,10 @@
+New support ticket {{ ticket.reference }}
+
+Requester: {{ ticket.requester.get_full_name|default:ticket.requester.get_username }} ({{ ticket.requester.email }})
+Asset: {{ ticket.asset.asset_tag }} — {{ ticket.asset.model }}
+Serial number: {{ ticket.asset.serial_number }}
+Priority: {{ ticket.get_priority_display }}
+Problem: {{ ticket.description }}
+
+Review the ticket:
+{{ ticket_url }}

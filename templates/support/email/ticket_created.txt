@@ -1,0 +1,11 @@
+Hello {{ ticket.requester.get_full_name|default:ticket.requester.get_username }},
+
+Your support ticket {{ ticket.reference }} was raised successfully.
+
+Asset: {{ ticket.asset.asset_tag }} — {{ ticket.asset.model }}
+Serial number: {{ ticket.asset.serial_number }}
+Priority: {{ ticket.get_priority_display }}
+Problem: {{ ticket.description }}
+
+The IT administrator will review the issue and contact you. Track the ticket here:
+{{ ticket_url }}

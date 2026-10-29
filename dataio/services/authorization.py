@@ -18,6 +18,7 @@ DOMAIN_MODELS = (
     ("assets", "manufacturer"),
     ("assets", "assetmodel"),
     ("assets", "asset"),
+    ("assets", "supportticket"),
 )
 
 

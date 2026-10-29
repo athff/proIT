@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
-from .views import dashboard
+from .views import admin_panel, dashboard, home, profile_account
 from .report_views import reports
 from .auth_views import signup
 from .views import ProITPasswordResetView
@@ -26,9 +26,11 @@ from .views import ProITPasswordResetView
 AUTH_TEMPLATE_CONTEXT = {"is_auth_page": True}
 
 urlpatterns = [
+    path("", home, name="home"),
     path('admin/', admin.site.urls),
     path("accounts/login/", auth_views.LoginView.as_view(extra_context=AUTH_TEMPLATE_CONTEXT), name="login"),
     path("accounts/signup/", signup, name="signup"),
+    path("accounts/profile/", profile_account, name="profile-account"),
     path("accounts/logout/", auth_views.LogoutView.as_view(extra_context=AUTH_TEMPLATE_CONTEXT), name="logout"),
     path(
         "accounts/password_change/",
@@ -62,9 +64,10 @@ urlpatterns = [
     ),
     path("accounts/", include("allauth.urls")),
     path("dashboard/", dashboard, name="dashboard"),
+    path("admin-panel/", admin_panel, name="admin-panel"),
     path("reports/", reports, name="reports"),
     path("assets/", include("assets.urls")),
     path("people/", include("people.urls")),
     path("vendors/", include("vendors.urls")),
     path("dataio/", include("dataio.urls")),
-]                                                           
+]

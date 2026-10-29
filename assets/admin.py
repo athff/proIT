@@ -2,7 +2,15 @@
 
 from django.contrib import admin
 
-from .models import Asset, AssetModel, Category, Manufacturer
+from .models import Asset, AssetModel, Category, Manufacturer, SupportTicket
+
+
+@admin.register(SupportTicket)
+class SupportTicketAdmin(admin.ModelAdmin):
+    list_display = ("reference", "asset", "requester", "priority", "status", "assigned_to", "created_at")
+    list_filter = ("status", "priority", "created_at")
+    search_fields = ("reference", "asset__asset_tag", "asset__serial_number", "requester__username", "description")
+    readonly_fields = ("reference", "attachment_data_uri", "attachment_name", "created_at", "updated_at", "resolved_at")
 
 
 @admin.register(Category)

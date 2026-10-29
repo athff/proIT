@@ -1,0 +1,8 @@
+Hello {{ ticket.requester.get_full_name|default:ticket.requester.get_username }},
+
+Ticket {{ ticket.reference }} is now {{ ticket.get_status_display }}.
+
+{% if ticket.resolution %}Resolution: {{ ticket.resolution }}{% endif %}
+
+View the ticket:
+{{ ticket_url }}

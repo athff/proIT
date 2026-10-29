@@ -1,9 +1,16 @@
 """Assets app models: catalog entities and managed IT assets."""
 
+import uuid
 from decimal import Decimal
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
+
+
+def generate_ticket_reference():
+    return f"TKT-{uuid.uuid4().hex[:10].upper()}"
 
 
 class Category(models.Model):
@@ -171,3 +178,78 @@ class Asset(models.Model):
         if errors:
             raise ValidationError(errors)
         super().clean()
+
+
+class SupportTicket(models.Model):
+    """A support request raised against an assigned IT asset."""
+
+    class Priority(models.TextChoices):
+        CRITICAL = "critical", "Critical — system unusable (within 1 hour)"
+        HIGH = "high", "High — major impact (today)"
+        NORMAL = "normal", "Normal — standard issue (next business day)"
+        LOW = "low", "Low — minor issue (when available)"
+
+    class Status(models.TextChoices):
+        OPEN = "open", "Open"
+        IN_PROGRESS = "in_progress", "In progress"
+        RESOLVED = "resolved", "Resolved"
+        CLOSED = "closed", "Closed"
+
+    reference = models.CharField(
+        max_length=24,
+        unique=True,
+        default=generate_ticket_reference,
+        editable=False,
+    )
+    requester = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="support_tickets",
+    )
+    asset = models.ForeignKey(
+        Asset,
+        on_delete=models.PROTECT,
+        related_name="support_tickets",
+    )
+    description = models.TextField()
+    priority = models.CharField(
+        max_length=12,
+        choices=Priority.choices,
+        default=Priority.NORMAL,
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.OPEN,
+    )
+    assigned_to = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="assigned_support_tickets",
+    )
+    attachment_data_uri = models.TextField(blank=True)
+    attachment_name = models.CharField(max_length=255, blank=True)
+    admin_notes = models.TextField(blank=True)
+    resolution = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ("-created_at",)
+        indexes = (
+            models.Index(fields=("status", "priority")),
+            models.Index(fields=("requester", "created_at")),
+        )
+
+    def __str__(self):
+        return f"{self.reference}: {self.asset.asset_tag}"
+
+    def save(self, *args, **kwargs):
+        if self.status in {self.Status.RESOLVED, self.Status.CLOSED}:
+            self.resolved_at = self.resolved_at or timezone.now()
+        else:
+            self.resolved_at = None
+        super().save(*args, **kwargs)

@@ -2,7 +2,14 @@
 
 from django.contrib import admin
 
-from .models import Department, Employee, Location
+from .models import AccountProfile, Department, Employee, Location
+
+
+@admin.register(AccountProfile)
+class AccountProfileAdmin(admin.ModelAdmin):
+    list_display = ("user", "updated_at")
+    search_fields = ("user__username", "user__email")
+    readonly_fields = ("avatar_data_uri", "updated_at")
 
 
 @admin.register(Department)

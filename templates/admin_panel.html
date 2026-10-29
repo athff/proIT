@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Admin panel | proIT{% endblock %}
+{% block extra_styles %}<link rel="stylesheet" href="{% static 'css/admin-panel.css' %}">{% endblock %}
+{% block content %}
+<section class="admin-page" aria-labelledby="admin-heading">
+    <header class="admin-heading"><div><span class="eyebrow">Administration</span><h1 id="admin-heading">Admin panel</h1><p class="subtle">Manage access, catalog data, and operational configuration from one place.</p></div><a class="admin-django-link" href="{% url 'admin:index' %}">Open advanced admin</a></header>
+
+    <section class="admin-stats" aria-label="Administration summary">
+        <article><span>Users</span><strong>{{ user_count }}</strong><small>{{ active_user_count }} active</small></article>
+        <article><span>Staff accounts</span><strong>{{ staff_user_count }}</strong><small>{{ role_count }} configured roles</small></article>
+        <article><span>Support tickets</span><strong>{{ open_ticket_count }}</strong><small>{{ ticket_count }} total tickets</small></article>
+        <article><span>Catalog</span><strong>{{ category_count }}</strong><small>{{ manufacturer_count }} manufacturers</small></article>
+    </section>
+
+    <section class="admin-grid">
+        <article class="panel admin-card admin-card-wide">
+            <div class="admin-card-heading"><div><h2>Management</h2><p>Common administrative destinations.</p></div></div>
+            <div class="admin-link-grid">
+                <a href="{% url 'admin:auth_user_changelist' %}"><span class="admin-link-icon">U</span><span><strong>User accounts</strong><small>Activation, staff access, and account details</small></span></a>
+                <a href="{% url 'admin:auth_group_changelist' %}"><span class="admin-link-icon">R</span><span><strong>Roles &amp; permissions</strong><small>Administrator, IT Staff, and Viewer access</small></span></a>
+                <a href="{% url 'admin:assets_category_changelist' %}"><span class="admin-link-icon">C</span><span><strong>Asset categories</strong><small>{{ category_count }} categories</small></span></a>
+                <a href="{% url 'admin:assets_manufacturer_changelist' %}"><span class="admin-link-icon">M</span><span><strong>Manufacturers</strong><small>{{ manufacturer_count }} manufacturers</small></span></a>
+                <a href="{% url 'admin:people_location_changelist' %}"><span class="admin-link-icon">L</span><span><strong>Locations</strong><small>{{ location_count }} locations</small></span></a>
+                <a href="{% url 'dataio-workspace' %}"><span class="admin-link-icon">I</span><span><strong>Import &amp; export</strong><small>CSV data operations and templates</small></span></a>
+                <a href="{% url 'assets:ticket-admin-list' %}"><span class="admin-link-icon">T</span><span><strong>Support tickets</strong><small>{{ open_ticket_count }} tickets need attention</small></span></a>
+            </div>
+        </article>
+
+        <article class="panel admin-card">
+            <div class="admin-card-heading"><div><h2>Recent users</h2><p>Newest workspace accounts.</p></div><a href="{% url 'admin:auth_user_changelist' %}">View all</a></div>
+            <div class="admin-user-list">{% for account in recent_users %}<div><span class="admin-mini-avatar">{{ account.get_username|slice:":1"|upper }}</span><span><strong>{{ account.get_full_name|default:account.get_username }}</strong><small>{{ account.email|default:"No email" }}</small></span><span class="admin-user-state{% if not account.is_active %} inactive{% endif %}">{% if account.is_active %}Active{% else %}Inactive{% endif %}</span></div>{% empty %}<p class="empty">No users found.</p>{% endfor %}</div>
+        </article>
+
+        <article class="panel admin-card">
+            <div class="admin-card-heading"><div><h2>System summary</h2><p>Non-sensitive runtime information.</p></div></div>
+            <dl class="system-list"><div><dt>Environment</dt><dd>{{ deployment_environment }}</dd></div><div><dt>Database</dt><dd>{{ database_engine }}</dd></div><div><dt>Email service</dt><dd>{{ email_backend }}</dd></div><div><dt>Departments</dt><dd>{{ department_count }}</dd></div><div><dt>Vendors</dt><dd>{{ vendor_count }}</dd></div></dl>
+        </article>
+
+        <article class="panel admin-card admin-card-wide">
+            <div class="admin-card-heading"><div><h2>Administrative activity</h2><p>Recent changes made through Django administration.</p></div></div>
+            <div class="activity-table">{% for entry in recent_admin_activity %}<div><span class="activity-dot"></span><span><strong>{{ entry.object_repr }}</strong><small>{{ entry.content_type.name|capfirst }} · {{ entry.user.get_username }}</small></span><time>{{ entry.action_time|date:"M j, Y · H:i" }}</time></div>{% empty %}<p class="empty">Administrative changes will appear here.</p>{% endfor %}</div>
+        </article>
+    </section>
+</section>
+{% endblock %}

@@ -1,5 +1,9 @@
 """Permission-protected Assets management views."""
 
+import base64
+from io import BytesIO
+
+import qrcode
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
@@ -8,7 +12,14 @@ from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
-from dataio.services.authorization import can_change, can_delete, can_view, can_import
+from dataio.services.authorization import (
+    ADMINISTRATOR,
+    can_change,
+    can_delete,
+    can_import,
+    can_view,
+    is_role,
+)
 from people.models import Employee, Location
 
 from .forms import AssetAssignmentForm, AssetForm
@@ -28,6 +39,34 @@ def _asset_queryset():
         "location",
         "assigned_employee__department",
     )
+
+
+def _qr_payload(asset):
+    """Return the human-readable identity encoded in an asset label."""
+    return "\n".join(
+        (
+            "PROIT ASSET",
+            f"Asset tag: {asset.asset_tag}",
+            f"Asset name: {asset.model}",
+            f"Serial number: {asset.serial_number}",
+        )
+    )
+
+
+def _qr_data_uri(payload):
+    """Generate an embeddable PNG QR code without storing a generated file."""
+    code = qrcode.QRCode(
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
+        box_size=10,
+        border=4,
+    )
+    code.add_data(payload)
+    code.make(fit=True)
+    image = code.make_image(fill_color="black", back_color="white")
+    output = BytesIO()
+    image.save(output, format="PNG")
+    encoded = base64.b64encode(output.getvalue()).decode("ascii")
+    return f"data:image/png;base64,{encoded}"
 
 
 @login_required
@@ -86,6 +125,23 @@ def asset_list(request):
 
 
 @login_required
+def asset_qr_label(request, pk):
+    if not is_role(request.user, ADMINISTRATOR):
+        raise PermissionDenied
+    asset = get_object_or_404(_asset_queryset(), pk=pk)
+    payload = _qr_payload(asset)
+    return render(
+        request,
+        "assets/qr_label.html",
+        {
+            "asset": asset,
+            "qr_payload": payload,
+            "qr_data_uri": _qr_data_uri(payload),
+        },
+    )
+
+
+@login_required
 def asset_detail(request, pk):
     _require(request.user, can_view)
     asset = get_object_or_404(_asset_queryset(), pk=pk)
@@ -96,6 +152,7 @@ def asset_detail(request, pk):
             "asset": asset,
             "can_edit": can_change(request.user, Asset),
             "can_remove": can_delete(request.user, Asset),
+            "can_print_label": is_role(request.user, ADMINISTRATOR),
         },
     )
 

@@ -1,19 +1,29 @@
 """Assets app model tests."""
 
+import base64
+from io import BytesIO
 from datetime import date
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-from django.test import TestCase
+from django.core import mail
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import TestCase, override_settings
 from django.urls import reverse
+from PIL import Image
 
-from assets.models import Asset, AssetModel, Category, Manufacturer
+from assets.models import Asset, AssetModel, Category, Manufacturer, SupportTicket
 from people.models import Department, Employee, Location
 from vendors.models import Vendor
 
-from dataio.services.authorization import IT_STAFF, VIEWER, configure_role_groups
+from dataio.services.authorization import (
+    ADMINISTRATOR,
+    IT_STAFF,
+    VIEWER,
+    configure_role_groups,
+)
 
 
 class AssetModelTest(TestCase):
@@ -159,6 +169,12 @@ class AssetWorkspaceTests(TestCase):
             is_staff=True,
         )
         self.viewer.groups.add(Group.objects.get(name=VIEWER))
+        self.admin_user = get_user_model().objects.create_user(
+            username="asset-admin",
+            password="Initial-password-123",
+            is_staff=True,
+        )
+        self.admin_user.groups.add(Group.objects.get(name=ADMINISTRATOR))
         self.category = Category.objects.create(name="Workspace Laptops")
         self.manufacturer = Manufacturer.objects.create(name="Workspace Maker")
         self.asset_model = AssetModel.objects.create(
@@ -334,3 +350,191 @@ class AssetWorkspaceTests(TestCase):
     def test_anonymous_users_are_redirected(self):
         response = self.client.get(reverse("assets:list"))
         self.assertRedirects(response, f"/accounts/login/?next={reverse('assets:list')}")
+
+    def test_administrator_can_generate_printable_qr_label(self):
+        asset = self.asset()
+        self.client.force_login(self.admin_user)
+
+        response = self.client.get(reverse("assets:qr-label", args=[asset.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Print QR label")
+        self.assertContains(response, asset.asset_tag)
+        self.assertContains(response, asset.serial_number)
+        self.assertContains(response, asset.model.name)
+        self.assertEqual(
+            response.context["qr_payload"],
+            "\n".join(
+                (
+                    "PROIT ASSET",
+                    f"Asset tag: {asset.asset_tag}",
+                    f"Asset name: {asset.model}",
+                    f"Serial number: {asset.serial_number}",
+                )
+            ),
+        )
+        image_data = response.context["qr_data_uri"].split(",", 1)[1]
+        self.assertTrue(base64.b64decode(image_data).startswith(b"\x89PNG\r\n\x1a\n"))
+
+    def test_qr_label_is_restricted_to_administrators(self):
+        asset = self.asset()
+        url = reverse("assets:qr-label", args=[asset.pk])
+
+        response = self.client.get(url)
+        self.assertRedirects(response, f"/accounts/login/?next={url}")
+
+        self.client.force_login(self.user)
+        self.assertEqual(self.client.get(url).status_code, 403)
+
+    def test_asset_detail_shows_qr_action_only_to_administrator(self):
+        asset = self.asset()
+        label_url = reverse("assets:qr-label", args=[asset.pk])
+
+        self.client.force_login(self.admin_user)
+        admin_response = self.client.get(reverse("assets:detail", args=[asset.pk]))
+        self.assertContains(admin_response, label_url)
+        self.assertContains(admin_response, "Print QR label")
+
+        self.client.force_login(self.user)
+        operator_response = self.client.get(reverse("assets:detail", args=[asset.pk]))
+        self.assertNotContains(operator_response, label_url)
+
+
+@override_settings(
+    MAILERS={"default": {"BACKEND": "django.core.mail.backends.locmem.EmailBackend"}}
+)
+class SupportTicketWorkflowTests(TestCase):
+    def setUp(self):
+        configure_role_groups()
+        self.requester = get_user_model().objects.create_user(
+            username="ticket-user",
+            email="ticket.user@example.com",
+            password="Initial-password-123",
+        )
+        self.admin_user = get_user_model().objects.create_superuser(
+            username="ticket-admin",
+            email="ticket.admin@example.com",
+            password="Initial-password-123",
+        )
+        category = Category.objects.create(name="Ticket Laptops")
+        manufacturer = Manufacturer.objects.create(name="Ticket Systems")
+        model = AssetModel.objects.create(
+            name="TicketBook 14",
+            manufacturer=manufacturer,
+            category=category,
+        )
+        employee = Employee.objects.create(
+            employee_id="EMP-TICKET",
+            first_name="Ticket",
+            last_name="User",
+            email=self.requester.email,
+        )
+        other_employee = Employee.objects.create(
+            employee_id="EMP-OTHER",
+            first_name="Other",
+            last_name="User",
+            email="other@example.com",
+        )
+        self.asset = Asset.objects.create(
+            asset_tag="TICKET-001",
+            serial_number="TICKET-SN-001",
+            model=model,
+            assigned_employee=employee,
+            status=Asset.Status.ASSIGNED,
+        )
+        self.other_asset = Asset.objects.create(
+            asset_tag="TICKET-002",
+            serial_number="TICKET-SN-002",
+            model=model,
+            assigned_employee=other_employee,
+            status=Asset.Status.ASSIGNED,
+        )
+
+    def test_user_can_raise_ticket_for_assigned_asset_and_receives_email(self):
+        image_bytes = BytesIO()
+        Image.new("RGB", (640, 360), "#17233f").save(image_bytes, format="PNG")
+        attachment = SimpleUploadedFile(
+            "screen.png",
+            image_bytes.getvalue(),
+            content_type="image/png",
+        )
+        self.client.force_login(self.requester)
+
+        page = self.client.get(reverse("assets:ticket-create"))
+        self.assertContains(page, self.asset.serial_number)
+        self.assertNotContains(page, self.other_asset.serial_number)
+        response = self.client.post(
+            reverse("assets:ticket-create"),
+            {
+                "asset": self.asset.pk,
+                "description": "The display is black after startup.",
+                "priority": SupportTicket.Priority.CRITICAL,
+                "attachment": attachment,
+            },
+        )
+
+        self.assertRedirects(response, reverse("dashboard"))
+        ticket = SupportTicket.objects.get(requester=self.requester)
+        self.assertEqual(ticket.asset, self.asset)
+        self.assertEqual(ticket.status, SupportTicket.Status.OPEN)
+        self.assertTrue(ticket.attachment_data_uri.startswith("data:image/webp;base64,"))
+        self.assertEqual(len(mail.outbox), 2)
+        self.assertIn(ticket.reference, mail.outbox[0].subject)
+        self.assertTrue(mail.outbox[0].alternatives)
+
+    def test_user_sees_only_own_tickets_and_cannot_open_admin_queue(self):
+        own = SupportTicket.objects.create(
+            requester=self.requester,
+            asset=self.asset,
+            description="Battery does not charge.",
+        )
+        other = SupportTicket.objects.create(
+            requester=self.admin_user,
+            asset=self.other_asset,
+            description="Other issue.",
+        )
+        self.client.force_login(self.requester)
+
+        response = self.client.get(reverse("assets:ticket-list"))
+        self.assertContains(response, own.reference)
+        self.assertNotContains(response, other.reference)
+        self.assertEqual(self.client.get(reverse("assets:ticket-admin-list")).status_code, 403)
+        self.assertEqual(
+            self.client.get(reverse("assets:ticket-detail", args=[other.reference])).status_code,
+            403,
+        )
+
+    def test_admin_can_filter_assign_resolve_and_notify_requester(self):
+        ticket = SupportTicket.objects.create(
+            requester=self.requester,
+            asset=self.asset,
+            description="System will not start.",
+            priority=SupportTicket.Priority.HIGH,
+        )
+        self.client.force_login(self.admin_user)
+
+        queue = self.client.get(
+            reverse("assets:ticket-admin-list"),
+            {"status": SupportTicket.Status.OPEN, "priority": SupportTicket.Priority.HIGH},
+        )
+        self.assertContains(queue, ticket.reference)
+        response = self.client.post(
+            reverse("assets:ticket-admin-detail", args=[ticket.reference]),
+            {
+                "status": SupportTicket.Status.RESOLVED,
+                "assigned_to": self.admin_user.pk,
+                "admin_notes": "Power adapter tested internally.",
+                "resolution": "Replaced the failed power adapter.",
+            },
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("assets:ticket-admin-detail", args=[ticket.reference]),
+        )
+        ticket.refresh_from_db()
+        self.assertEqual(ticket.status, SupportTicket.Status.RESOLVED)
+        self.assertEqual(ticket.assigned_to, self.admin_user)
+        self.assertIsNotNone(ticket.resolved_at)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("Status updated", mail.outbox[0].subject)

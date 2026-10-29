@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}My support tickets | proIT{% endblock %}
+{% block extra_styles %}<link rel="stylesheet" href="{% static 'css/tickets.css' %}">{% endblock %}
+{% block content %}
+<section class="ticket-page" aria-labelledby="tickets-heading">
+    <header class="ticket-heading"><div><span class="eyebrow">IT support</span><h1 id="tickets-heading">My tickets</h1><p class="subtle">Track reported issues and their latest status.</p></div><a class="ticket-primary" href="{% url 'assets:ticket-create' %}">+ Raise a ticket</a></header>
+    <div class="panel ticket-table-card">{% if tickets %}<div class="ticket-table"><div class="ticket-table-head"><span>Ticket</span><span>Asset</span><span>Priority</span><span>Status</span><span>Updated</span><span></span></div>{% for ticket in tickets %}<a class="ticket-table-row" href="{% url 'assets:ticket-detail' ticket.reference %}"><span><strong>{{ ticket.reference }}</strong><small>{{ ticket.description|truncatechars:58 }}</small></span><span><strong>{{ ticket.asset.asset_tag }}</strong><small>{{ ticket.asset.serial_number }}</small></span><span><i class="ticket-badge priority-{{ ticket.priority }}">{{ ticket.get_priority_display|cut:" — system unusable (within 1 hour)"|cut:" — major impact (today)"|cut:" — standard issue (next business day)"|cut:" — minor issue (when available)" }}</i></span><span><i class="ticket-badge status-{{ ticket.status }}">{{ ticket.get_status_display }}</i></span><span>{{ ticket.updated_at|date:"M j, Y" }}</span><span class="ticket-row-arrow">→</span></a>{% endfor %}</div>{% else %}<div class="ticket-empty"><span>✓</span><h2>No support tickets yet</h2><p>If an assigned device develops a problem, raise a ticket and track it here.</p><a class="ticket-primary" href="{% url 'assets:ticket-create' %}">Raise your first ticket</a></div>{% endif %}</div>
+</section>
+{% endblock %}

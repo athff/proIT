@@ -30,7 +30,7 @@
         <div class="panel-header"><h2>Status breakdown</h2><span class="subtle">Live</span></div>
         <div class="status-list">
             {% for row in status_rows %}
-            <div class="status-row"><span>{{ row.label }}</span><span class="status-track"><span class="status-fill" style="width:{{ row.percent }}%"></span></span><span class="status-number">{{ row.count }}</span></div>
+            <div class="status-row"><span>{{ row.label }}</span><span class="status-track" role="progressbar" aria-label="{{ row.label }} assets" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ row.percent }}"><span class="status-fill" style="width:{{ row.percent }}%"></span></span><span class="status-number">{{ row.count }}</span></div>
             {% endfor %}
         </div>
     </article>

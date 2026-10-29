@@ -44,6 +44,9 @@ class ReportTests(TestCase):
         self.assertEqual(response.context["available_count"], 1)
         self.assertContains(response, "Report Laptops")
         self.assertContains(response, "Report HQ")
+        self.assertContains(response, 'role="progressbar"')
+        self.assertContains(response, 'style="width:50%"', count=3)
+        self.assertContains(response, 'style="width:100%"', count=2)
 
     def test_viewer_can_read_reports_and_anonymous_is_redirected(self):
         viewer = get_user_model().objects.create_user(

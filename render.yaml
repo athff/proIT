@@ -16,6 +16,22 @@ services:
         sync: false
       - key: PROIT_EMAIL_BACKEND
         sync: false
+      - key: EMAIL_HOST
+        sync: false
+      - key: EMAIL_PORT
+        sync: false
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      - key: EMAIL_USE_TLS
+        sync: false
+      - key: EMAIL_USE_SSL
+        sync: false
+      - key: EMAIL_TIMEOUT
+        sync: false
+      - key: DEFAULT_FROM_EMAIL
+        sync: false
       - key: CSRF_TRUSTED_ORIGINS
         sync: false
       - key: GOOGLE_CLIENT_ID

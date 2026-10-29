@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Profile & account | proIT{% endblock %}
+{% block extra_styles %}<link rel="stylesheet" href="{% static 'css/account.css' %}">{% endblock %}
+{% block content %}
+<section class="account-page" aria-labelledby="profile-heading">
+    <header class="account-heading">
+        <div><span class="eyebrow">Your account</span><h1 id="profile-heading">Profile &amp; account</h1><p class="subtle">Manage the identity details shown across your proIT workspace.</p></div>
+        <a class="account-password-link" href="{% url 'password_change' %}">Change password</a>
+    </header>
+
+    {% if messages %}{% for message in messages %}<div class="notice {{ message.tags }}">{{ message }}</div>{% endfor %}{% endif %}
+
+    <form class="account-layout" method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        <aside class="panel avatar-card">
+            <div class="avatar-preview" id="avatar-preview">
+                {% if account_avatar %}<img src="{{ account_avatar }}" alt="Current profile photo">{% else %}<span>{{ account_initial }}</span>{% endif %}
+            </div>
+            <h2>{{ account_display_name }}</h2>
+            <span class="profile-role">{{ user_role }}</span>
+            <p>PNG, JPEG, or WebP. Images are cropped to a square and limited to 2 MB.</p>
+            <label class="avatar-upload" for="{{ form.avatar.id_for_label }}">Choose photo</label>
+            {{ form.avatar }}
+            {% if form.avatar.errors %}<ul class="account-errors">{% for error in form.avatar.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+            {% if account_avatar %}<label class="remove-avatar">{{ form.remove_avatar }} <span>Remove current photo</span></label>{% endif %}
+        </aside>
+
+        <div class="panel account-form-card">
+            <div class="account-card-heading"><div><h2>Account details</h2><p>Keep your contact information accurate and recognizable.</p></div><span class="account-status"><i></i> Active</span></div>
+            {% if form.non_field_errors %}<div class="account-alert">{{ form.non_field_errors }}</div>{% endif %}
+            <div class="account-fields">
+                <div class="account-field"><label>Username</label><input class="account-input" value="{{ request.user.get_username }}" disabled><small>Usernames cannot be changed here.</small></div>
+                <div class="account-field"><label for="{{ form.email.id_for_label }}">Email address</label>{{ form.email }}{% if form.email.errors %}<ul class="account-errors">{% for error in form.email.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}</div>
+                <div class="account-field"><label for="{{ form.first_name.id_for_label }}">First name</label>{{ form.first_name }}{% if form.first_name.errors %}<ul class="account-errors">{% for error in form.first_name.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}</div>
+                <div class="account-field"><label for="{{ form.last_name.id_for_label }}">Last name</label>{{ form.last_name }}{% if form.last_name.errors %}<ul class="account-errors">{% for error in form.last_name.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}</div>
+            </div>
+            <div class="account-meta"><div><span>Role</span><strong>{{ user_role }}</strong></div><div><span>Member since</span><strong>{{ request.user.date_joined|date:"M j, Y" }}</strong></div><div><span>Last sign-in</span><strong>{{ request.user.last_login|date:"M j, Y · H:i"|default:"Current session" }}</strong></div></div>
+            <div class="account-actions"><a href="{% url 'dashboard' %}">Cancel</a><button type="submit">Save changes</button></div>
+        </div>
+    </form>
+</section>
+<script>
+    const avatarInput = document.getElementById("{{ form.avatar.id_for_label }}");
+    const avatarPreview = document.getElementById("avatar-preview");
+    if (avatarInput && avatarPreview) avatarInput.addEventListener("change", () => {
+        const file = avatarInput.files[0];
+        if (!file) return;
+        const image = document.createElement("img");
+        image.alt = "Selected profile photo preview";
+        image.src = URL.createObjectURL(file);
+        image.onload = () => URL.revokeObjectURL(image.src);
+        avatarPreview.replaceChildren(image);
+    });
+</script>
+{% endblock %}

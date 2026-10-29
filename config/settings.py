@@ -112,7 +112,9 @@ def _email_configuration() -> dict:
     backend = os.getenv(
         "PROIT_EMAIL_BACKEND",
         "django.core.mail.backends.console.EmailBackend",
-    )
+    ).strip()
+    if backend == "resend":
+        backend = "config.email.ResendEmailBackend"
     
     return {
             "backend": backend,
@@ -127,6 +129,10 @@ def _email_configuration() -> dict:
             "DEFAULT_FROM_EMAIL",
             os.getenv("EMAIL_HOST_USER", ""),
         ).strip(),
+        "resend_api_key": os.getenv("RESEND_API_KEY", "").strip(),
+        "resend_api_url": os.getenv(
+            "RESEND_API_URL", "https://api.resend.com/emails"
+        ).strip(),
         }
 
 
@@ -134,15 +140,27 @@ def _mailers_configuration(email_configuration: dict) -> dict:
     backend = email_configuration["backend"]
     options = {}
 
-    if backend == "config.email.DiagnosticSMTPEmailBackend":
+    smtp_backends = {
+        "config.email.DiagnosticSMTPEmailBackend",
+        "django.core.mail.backends.smtp.EmailBackend",
+    }
+    if backend in smtp_backends:
         options = {
             "host": email_configuration["host"],
             "port": email_configuration["port"],
             "username": email_configuration["username"],
             "password": email_configuration["password"],
             "use_tls": email_configuration["use_tls"],
+            "use_ssl": email_configuration["use_ssl"],
+            "timeout": email_configuration["timeout"],
         }
-    # Resend backend handling removed (config/email.py deleted per cleanup)
+    elif backend == "config.email.ResendEmailBackend":
+        options = {
+            "api_key": email_configuration["resend_api_key"],
+            "from_email": email_configuration["from_email"],
+            "timeout": email_configuration["timeout"],
+            "api_url": email_configuration["resend_api_url"],
+        }
 
     return {
         "default": {
@@ -178,7 +196,11 @@ def validate_production_configuration(
         missing.append("ALLOWED_HOSTS")
     if not email_backend or email_backend.endswith("console.EmailBackend"):
         missing.append("EMAIL_BACKEND (non-console)")
-    if email_backend.endswith("smtp.EmailBackend"):
+    smtp_backends = {
+        "config.email.DiagnosticSMTPEmailBackend",
+        "django.core.mail.backends.smtp.EmailBackend",
+    }
+    if email_backend in smtp_backends:
         if email_use_tls and email_use_ssl:
             missing.append("EMAIL_USE_TLS and EMAIL_USE_SSL cannot both be enabled")
         if not email_host:
@@ -274,6 +296,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'config.context_processors.account_menu',
             ],
         },
     },

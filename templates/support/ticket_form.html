@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Raise support ticket | proIT{% endblock %}
+{% block extra_styles %}<link rel="stylesheet" href="{% static 'css/tickets.css' %}">{% endblock %}
+{% block content %}
+<section class="ticket-page ticket-form-page" aria-labelledby="ticket-heading">
+    <header class="ticket-heading"><div><span class="eyebrow">IT support</span><h1 id="ticket-heading">What can we help with?</h1><p class="subtle">Tell the IT team what is happening with your assigned device.</p></div><a class="ticket-secondary" href="{% url 'assets:ticket-list' %}">View my tickets</a></header>
+    <form class="panel ticket-form" method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        <div class="ticket-section"><span class="ticket-step">1</span><div class="ticket-section-copy"><h2>Select the affected asset</h2><p>The asset name and serial number are included automatically.</p></div></div>
+        <div class="ticket-field"><label for="{{ form.asset.id_for_label }}">Assigned asset</label>{{ form.asset }}{% if not form.fields.asset.queryset.exists %}<p class="ticket-help ticket-warning">No asset is linked to your account email. Ask an administrator to match your user email with your employee record.</p>{% endif %}{% if form.asset.errors %}<ul class="ticket-errors">{% for error in form.asset.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}</div>
+
+        <div class="ticket-divider"></div>
+        <div class="ticket-section"><span class="ticket-step">2</span><div class="ticket-section-copy"><h2>Describe the problem</h2><p>Include symptoms, when the issue started, and anything you already tried.</p></div></div>
+        <div class="ticket-field"><label for="{{ form.description.id_for_label }}">What is not working?</label>{{ form.description }}{% if form.description.errors %}<ul class="ticket-errors">{% for error in form.description.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}</div>
+        <div class="ticket-field"><label for="{{ form.attachment.id_for_label }}">Screenshot or photo <span>Optional</span></label><div class="ticket-upload"><div id="ticket-upload-copy"><strong>Add supporting image</strong><small>PNG, JPEG, or WebP up to 3 MB</small></div><img id="ticket-image-preview" alt="Selected attachment preview" hidden>{{ form.attachment }}</div>{% if form.attachment.errors %}<ul class="ticket-errors">{% for error in form.attachment.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}</div>
+
+        <div class="ticket-divider"></div>
+        <div class="ticket-section"><span class="ticket-step">3</span><div class="ticket-section-copy"><h2>How urgent is it?</h2><p>Choose the impact level that best matches your situation.</p></div></div>
+        <div class="priority-grid">{% for radio in form.priority %}<label class="priority-option priority-{{ radio.data.value }}">{{ radio.tag }}<span class="priority-card"><i></i><span><strong>{{ radio.choice_label }}</strong>{% if radio.data.value == "critical" %}<small>Device cannot be used at all.</small>{% elif radio.data.value == "high" %}<small>Work is seriously blocked.</small>{% elif radio.data.value == "normal" %}<small>Work can continue temporarily.</small>{% else %}<small>Minor inconvenience or request.</small>{% endif %}</span></span></label>{% endfor %}</div>
+        {% if form.priority.errors %}<ul class="ticket-errors">{% for error in form.priority.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+
+        <div class="ticket-actions"><a href="{% url 'dashboard' %}">Cancel</a><button type="submit" {% if not form.fields.asset.queryset.exists %}disabled{% endif %}>Confirm ticket</button></div>
+    </form>
+</section>
+<script>
+    const ticketAttachment = document.getElementById("{{ form.attachment.id_for_label }}");
+    const ticketPreview = document.getElementById("ticket-image-preview");
+    const uploadCopy = document.getElementById("ticket-upload-copy");
+    if (ticketAttachment && ticketPreview) ticketAttachment.addEventListener("change", () => {
+        const file = ticketAttachment.files[0];
+        if (!file) return;
+        ticketPreview.src = URL.createObjectURL(file);
+        ticketPreview.hidden = false;
+        uploadCopy.hidden = true;
+    });
+</script>
+{% endblock %}

@@ -1,21 +1,92 @@
 """Project-level application views."""
 
+from django.conf import settings
+from django.contrib.admin.models import LogEntry
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import Group
 from django.contrib.auth.views import PasswordResetView
-from django.shortcuts import render
+from django.core.exceptions import PermissionDenied
+from django.db import connection
+from django.contrib import messages
+from django.shortcuts import redirect, render
 
-from assets.models import Asset
-from dataio.services.authorization import can_export, can_import, can_view
+from assets.models import Asset, AssetModel, Category, Manufacturer, SupportTicket
+from dataio.services.authorization import (
+    ADMINISTRATOR,
+    can_export,
+    can_import,
+    can_view,
+    is_role,
+)
 from dataio.services.registry import SPEC_BY_KEY
-from people.models import Employee
+from people.models import Department, Employee, Location
 from vendors.models import Vendor
 
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode
-from django.contrib.auth.tokens import default_token_generator
-from django.urls import reverse
-from django.contrib.auth import get_user_model
-from datetime import datetime
+from .forms import AccountProfileForm, ProITPasswordResetForm
+
+
+def home(request):
+    """Route the site root to the appropriate authentication destination."""
+    if request.user.is_authenticated:
+        return redirect("dashboard")
+    return redirect("login")
+
+
+@login_required
+def profile_account(request):
+    """Allow a signed-in user to maintain their account identity and avatar."""
+    form = AccountProfileForm(
+        request.POST or None,
+        request.FILES or None,
+        user=request.user,
+    )
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Your profile was updated.")
+        return redirect("profile-account")
+    return render(request, "account/profile.html", {"form": form})
+
+
+@login_required
+def admin_panel(request):
+    """Operational administration hub for users in the Administrator role."""
+    if not is_role(request.user, ADMINISTRATOR):
+        raise PermissionDenied
+
+    User = get_user_model()
+    recent_users = User.objects.prefetch_related("groups").order_by("-date_joined")[:6]
+    recent_admin_activity = LogEntry.objects.select_related(
+        "user", "content_type"
+    ).order_by("-action_time")[:6]
+    email_backend = settings.MAILERS["default"]["BACKEND"].rsplit(".", 1)[-1]
+    return render(
+        request,
+        "admin_panel.html",
+        {
+            "user_count": User.objects.count(),
+            "active_user_count": User.objects.filter(is_active=True).count(),
+            "staff_user_count": User.objects.filter(is_staff=True).count(),
+            "role_count": Group.objects.count(),
+            "asset_count": Asset.objects.count(),
+            "asset_model_count": AssetModel.objects.count(),
+            "category_count": Category.objects.count(),
+            "manufacturer_count": Manufacturer.objects.count(),
+            "department_count": Department.objects.count(),
+            "location_count": Location.objects.count(),
+            "vendor_count": Vendor.objects.count(),
+            "ticket_count": SupportTicket.objects.count(),
+            "open_ticket_count": SupportTicket.objects.filter(
+                status__in=(SupportTicket.Status.OPEN, SupportTicket.Status.IN_PROGRESS)
+            ).count(),
+            "recent_users": recent_users,
+            "recent_admin_activity": recent_admin_activity,
+            "deployment_environment": settings.ENVIRONMENT.title(),
+            "database_engine": connection.vendor.title(),
+            "email_backend": email_backend,
+        },
+    )
+
 
 @login_required
 def dashboard(request):
@@ -93,47 +164,8 @@ def dashboard(request):
 class ProITPasswordResetView(PasswordResetView):
     """Custom password reset view that sends branded HTML and plain-text emails."""
 
-    def send_mail(self, subject, email_from, to_email, context):
-        """Send password reset email with both HTML and plain-text alternatives."""
-        # Ensure reset_url is present in the context
-        if "reset_url" not in context:
-            # The e‑mail that triggered the reset is obtained from the POST data
-            # (the form always submits the e‑mail address). Use it to look up the user.
-            email = context.get("email") or self.request.POST.get("email")
-            if email:
-                User = get_user_model()
-                try:
-                    user = User.objects.get(email=email)
-                except User.DoesNotExist:
-                    user = None
-                if user:
-                    uidb64 = urlsafe_base64_encode(force_bytes(user.pk)).decode()
-                    token = default_token_generator.make_token(user)
-                    rel_url = reverse("password_reset_confirm", kwargs={"uidb64": uidb64, "token": token})
-                    scheme = self.request.scheme
-                    domain = self.request.get_host()
-                    context["reset_url"] = f"{scheme}://{domain}{rel_url}"
-        # Ensure current_year is present in the context
-        if "current_year" not in context:
-            context["current_year"] = datetime.now().year
-
-        # Render the HTML email template
-        html_template = render_to_string(
-            "registration/password_reset_email.html", context
-        )
-        # Render the plain-text email template
-        text_template = render_to_string(
-            "registration/password_reset_email.txt", context
-        )
-        # Create the email message with both alternatives
-        message = EmailMessage(
-            subject,
-            text_template,
-            email_from,
-            [to_email],
-        )
-        message.content_subtype = "text/plain"
-        message.alternatives = [
-            ("text/html", html_template)
-        ]
-        message.send()
+    # PasswordResetView delegates delivery to PasswordResetForm. Supplying both
+    # template names makes Django build a multipart/alternative message.
+    email_template_name = "registration/password_reset_email.txt"
+    html_email_template_name = "registration/password_reset_email.html"
+    form_class = ProITPasswordResetForm

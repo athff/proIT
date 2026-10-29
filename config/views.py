@@ -1,6 +1,7 @@
 """Project-level application views."""
 
 from django.contrib.auth.decorators import login_required
+from django.db.models import Count
 from django.shortcuts import render
 
 from assets.models import Asset
@@ -19,11 +20,14 @@ def dashboard(request):
         "assigned_employee",
         "location",
     )
-    asset_count = assets.count()
+    # One grouped query instead of a COUNT per status.
+    counts_by_status = dict(
+        Asset.objects.values_list("status").annotate(total=Count("id"))
+    )
     status_counts = {
-        key: assets.filter(status=key).count()
-        for key, _ in Asset.Status.choices
+        key: counts_by_status.get(key, 0) for key, _ in Asset.Status.choices
     }
+    asset_count = sum(status_counts.values())
     status_rows = [
         {
             "value": key,

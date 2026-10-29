@@ -83,18 +83,26 @@ class ResendEmailBackend(BaseEmailBackend):
 
     api_url = "https://api.resend.com/emails"
 
-    def __init__(self, fail_silently=False, **kwargs):
-        # Django 6.x creates backends as backend_class(alias=alias, **options).
-        alias = kwargs.pop("alias", None)
-        try:
-            super().__init__(alias=alias, fail_silently=fail_silently)
-        except TypeError:
-            super().__init__(fail_silently=fail_silently)
+    def __init__(
+        self,
+        api_key=None,
+        api_url=None,
+        from_email=None,
+        timeout=None,
+        fail_silently=False,
+        **kwargs,
+    ):
+        # Django 6.x creates backends as backend_class(alias=alias, **options),
+        # so the MAILERS OPTIONS keys arrive as explicit keyword arguments.
+        # Passing fail_silently to super() is deprecated; a subclass that
+        # supports it sets its own attribute instead.
+        super().__init__(**kwargs)
 
-        self.api_key = (kwargs.get("api_key") or "").strip()
-        self.from_email = (kwargs.get("from_email") or "").strip()
-        self.timeout = kwargs.get("timeout") or DEFAULT_TIMEOUT
-        self.api_url = (kwargs.get("api_url") or self.api_url).strip()
+        self.fail_silently = fail_silently
+        self.api_key = (api_key or "").strip()
+        self.from_email = (from_email or "").strip()
+        self.timeout = timeout or DEFAULT_TIMEOUT
+        self.api_url = (api_url or type(self).api_url).strip()
 
         if not self.api_key:
             raise ImproperlyConfigured("Resend api_key is not configured.")

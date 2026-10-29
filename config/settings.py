@@ -107,42 +107,88 @@ def _static_storage_backend(environment: str) -> str:
     return "django.contrib.staticfiles.storage.StaticFilesStorage"
 
 
+CONSOLE_EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+RESEND_EMAIL_BACKEND = "config.email.ResendEmailBackend"
+
+# Short names accepted in PROIT_EMAIL_BACKEND so operators do not have to paste
+# full dotted paths into the deployment environment.
+EMAIL_BACKEND_ALIASES = {
+    "console": CONSOLE_EMAIL_BACKEND,
+    "locmem": "django.core.mail.backends.locmem.EmailBackend",
+    "smtp": "django.core.mail.backends.smtp.EmailBackend",
+    "diagnostic_smtp": "config.email.DiagnosticSMTPEmailBackend",
+    "resend": RESEND_EMAIL_BACKEND,
+}
+
+# Backends that take SMTP connection details from MAILERS["default"]["OPTIONS"].
+SMTP_EMAIL_BACKENDS = frozenset(
+    {
+        "django.core.mail.backends.smtp.EmailBackend",
+        "config.email.DiagnosticSMTPEmailBackend",
+    }
+)
+
+
+def _resolve_email_backend(value: str | None) -> str:
+    """Expand a short backend name into the dotted path Django can import."""
+    value = (value or "").strip()
+    if not value:
+        return CONSOLE_EMAIL_BACKEND
+    return EMAIL_BACKEND_ALIASES.get(value.lower(), value)
+
+
+def _env_flag(name: str) -> bool:
+    return os.getenv(name, "").strip().lower() in {"1", "true", "yes", "on"}
+
+
 def _email_configuration() -> dict:
-    # Email configuration read from environment variables
-    backend = os.getenv(
-        "PROIT_EMAIL_BACKEND",
-        "django.core.mail.backends.console.EmailBackend",
-    )
-    
+    # Email configuration read from environment variables.
     return {
-            "backend": backend,
+        "backend": _resolve_email_backend(os.getenv("PROIT_EMAIL_BACKEND")),
         "host": os.getenv("EMAIL_HOST", "").strip(),
         "port": int(os.getenv("EMAIL_PORT", "587")),
         "username": os.getenv("EMAIL_HOST_USER", "").strip(),
         "password": os.getenv("EMAIL_HOST_PASSWORD", "").strip(),
-        "use_tls": os.getenv("EMAIL_USE_TLS", "").strip().lower() in {"1", "true", "yes", "on"},
-        "use_ssl": os.getenv("EMAIL_USE_SSL", "").strip().lower() in {"1", "true", "yes", "on"},
+        "use_tls": _env_flag("EMAIL_USE_TLS"),
+        "use_ssl": _env_flag("EMAIL_USE_SSL"),
         "timeout": int(os.getenv("EMAIL_TIMEOUT", "30")),
         "from_email": os.getenv(
             "DEFAULT_FROM_EMAIL",
             os.getenv("EMAIL_HOST_USER", ""),
         ).strip(),
-        }
+        "api_key": os.getenv("RESEND_API_KEY", "").strip(),
+        "api_url": os.getenv(
+            "RESEND_API_URL", "https://api.resend.com/emails"
+        ).strip(),
+    }
 
 
 def _mailers_configuration(email_configuration: dict) -> dict:
-    backend = email_configuration["backend"]
-    options = {}
+    """Map the environment-derived settings onto Django's MAILERS structure.
 
-    if backend == "config.email.DiagnosticSMTPEmailBackend":
+    Defining MAILERS disables every EMAIL_* setting, so the connection details
+    have to be forwarded through OPTIONS or the backend will never receive them.
+    """
+    backend = email_configuration["backend"]
+    options: dict = {}
+
+    if backend in SMTP_EMAIL_BACKENDS:
         options = {
             "host": email_configuration["host"],
             "port": email_configuration["port"],
             "username": email_configuration["username"],
             "password": email_configuration["password"],
             "use_tls": email_configuration["use_tls"],
+            "use_ssl": email_configuration["use_ssl"],
+            "timeout": email_configuration["timeout"],
         }
-    # Resend backend handling removed (config/email.py deleted per cleanup)
+    elif backend == RESEND_EMAIL_BACKEND:
+        options = {
+            "api_key": email_configuration["api_key"],
+            "api_url": email_configuration["api_url"],
+            "from_email": email_configuration["from_email"],
+            "timeout": email_configuration["timeout"],
+        }
 
     return {
         "default": {
@@ -165,6 +211,7 @@ def validate_production_configuration(
     default_from_email: str = "",
     email_use_tls: bool = True,
     email_use_ssl: bool = False,
+    email_api_key: str = "",
 ) -> None:
     """Reject insecure or incomplete settings before production startup."""
     if environment != "production":
@@ -176,9 +223,11 @@ def validate_production_configuration(
         missing.append("DEBUG=False")
     if not allowed_hosts:
         missing.append("ALLOWED_HOSTS")
-    if not email_backend or email_backend.endswith("console.EmailBackend"):
+    if not email_backend or email_backend == CONSOLE_EMAIL_BACKEND:
         missing.append("EMAIL_BACKEND (non-console)")
-    if email_backend.endswith("smtp.EmailBackend"):
+    # Check every SMTP-style backend, including the project's diagnostic
+    # subclass, so an unusable mail configuration cannot reach production.
+    if email_backend in SMTP_EMAIL_BACKENDS:
         if email_use_tls and email_use_ssl:
             missing.append("EMAIL_USE_TLS and EMAIL_USE_SSL cannot both be enabled")
         if not email_host:
@@ -187,6 +236,11 @@ def validate_production_configuration(
             missing.append("EMAIL_HOST_USER")
         if not email_password:
             missing.append("EMAIL_HOST_PASSWORD")
+        if not default_from_email:
+            missing.append("DEFAULT_FROM_EMAIL")
+    if email_backend == RESEND_EMAIL_BACKEND:
+        if not email_api_key:
+            missing.append("RESEND_API_KEY")
         if not default_from_email:
             missing.append("DEFAULT_FROM_EMAIL")
     if missing:
@@ -225,6 +279,7 @@ validate_production_configuration(
     default_from_email=DEFAULT_FROM_EMAIL,
     email_use_tls=EMAIL_CONFIGURATION["use_tls"],
     email_use_ssl=EMAIL_CONFIGURATION["use_ssl"],
+    email_api_key=EMAIL_CONFIGURATION["api_key"],
 )
 
 
@@ -375,9 +430,10 @@ STORAGES = {
 globals().update(_security_settings(ENVIRONMENT))
 
 DATAIO_MAX_UPLOAD_SIZE = int(os.getenv("DATAIO_MAX_UPLOAD_SIZE", 5 * 1024 * 1024))
-LOGIN_URL = "/accounts/login/"
+# Use URL names so these stay correct if the admin or login paths move.
+LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "/dashboard/"
-LOGOUT_REDIRECT_URL = "/accounts/login/"
+LOGOUT_REDIRECT_URL = "login"
 SITE_ID = 1
 ACCOUNT_LOGIN_METHODS = {"username", "email"}
 ACCOUNT_SIGNUP_FIELDS = ["username*", "email*", "password1", "password2"]

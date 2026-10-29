@@ -14,6 +14,8 @@ class Column:
     required: bool = False
     nullable: bool = False
     kind: str = "text"
+    # Allowed values for kind="status" columns, validated during conversion.
+    choices: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -40,23 +42,26 @@ class ModelSpec:
 
 
 def build_asset_model(row):
+    is_active = row.get("is_active")
     return AssetModel(
         name=row["name"],
         manufacturer=row["manufacturer"],
         category=row["category"],
-        is_active=row.get("is_active", True),
+        is_active=True if is_active is None else is_active,
     )
 
 
 def build_asset(row):
+    # Optional columns may be absent from the header or present but empty, so
+    # fall back to the model default rather than passing None.
     return Asset(
         asset_tag=row["asset_tag"],
         serial_number=row["serial_number"],
         model=row["model"],
-        vendor=row["vendor"],
-        location=row["location"],
-        assigned_employee=row["assigned_employee"],
-        status=row.get("status", Asset.Status.AVAILABLE),
+        vendor=row.get("vendor"),
+        location=row.get("location"),
+        assigned_employee=row.get("assigned_employee"),
+        status=row.get("status") or Asset.Status.AVAILABLE,
         purchase_date=row.get("purchase_date"),
         purchase_cost=row.get("purchase_cost"),
         warranty_expiry=row.get("warranty_expiry"),
@@ -160,7 +165,12 @@ SPECS = (
             Column("vendor", nullable=True),
             Column("location", nullable=True),
             Column("assigned_employee", nullable=True),
-            Column("status", kind="status"),
+            Column(
+                "status",
+                nullable=True,
+                kind="status",
+                choices=tuple(Asset.Status.values),
+            ),
             Column("purchase_date", nullable=True, kind="date"),
             Column("purchase_cost", nullable=True, kind="decimal"),
             Column("warranty_expiry", nullable=True, kind="date"),

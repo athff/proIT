@@ -25,12 +25,47 @@ class CSVImportError(Exception):
         super().__init__("CSV import validation failed.")
 
 
+TRUE_VALUES = frozenset({"true", "t", "yes", "y", "1", "on"})
+FALSE_VALUES = frozenset({"false", "f", "no", "n", "0", "off"})
+
+
 def parse_bool(value: str, row: int, column: str) -> bool:
-    if value.lower() not in {"true", "false"    }:
-        raise CSVImportError(
-            [ImportErrorDetail(row, column, "invalid_boolean", "Use true or false.")]
-        )
-    return value.lower() == "true"
+    """Accept the boolean spellings spreadsheets commonly produce."""
+    normalized = value.strip().lower()
+    if normalized in TRUE_VALUES:
+        return True
+    if normalized in FALSE_VALUES:
+        return False
+    raise CSVImportError(
+        [
+            ImportErrorDetail(
+                row,
+                column,
+                "invalid_boolean",
+                "Use true or false (yes/no and 1/0 are also accepted).",
+            )
+        ]
+    )
+
+
+def parse_choice(value: str, column: Column, row: int) -> str:
+    """Validate a value against the column's allowed choices."""
+    if not column.choices:
+        return value
+    normalized = value.strip().lower()
+    for choice in column.choices:
+        if normalized == choice.lower():
+            return choice
+    raise CSVImportError(
+        [
+            ImportErrorDetail(
+                row,
+                column.name,
+                "invalid_choice",
+                "Use one of: " + ", ".join(column.choices) + ".",
+            )
+        ]
+    )
 
 
 def convert(value: str, column: Column, row: int):
@@ -43,6 +78,8 @@ def convert(value: str, column: Column, row: int):
         return None
     if column.kind == "boolean":
         return parse_bool(value, row, column.name)
+    if column.kind == "status":
+        return parse_choice(value, column, row)
     if column.kind == "date":
         try:
             return date.fromisoformat(value)

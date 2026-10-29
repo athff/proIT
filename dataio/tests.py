@@ -2,15 +2,19 @@
 
 import csv
 import io
+import shutil
+import sqlite3
+import tempfile
 from datetime import date
 from decimal import Decimal
+from pathlib import Path
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.sites.models import Site
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command, CommandError
-from django.conf import settings
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from unittest.mock import patch
@@ -36,47 +40,103 @@ def csv_bytes(headers, rows):
 
 
 class SQLiteTransferCommandTest(TestCase):
+    """Exercise the transfer command against a generated SQLite source.
+
+    The command requires its source to be BASE_DIR/db.sqlite3, so each test
+    points BASE_DIR at a temporary directory holding a purpose-built database
+    instead of depending on a developer's local file.
+    """
+
+    SOURCE_DEPARTMENT = {
+        "id": 1,
+        "name": "Engineering",
+        "description": "Builds things",
+        "is_active": 1,
+        "created_at": "2026-10-16 11:00:52.664720",
+        "updated_at": "2026-10-16 11:30:12.100000",
+    }
+
+    def setUp(self):
+        from .management.commands.transfer_sqlite_data import (
+            OPTIONAL_ACCOUNT_MODELS,
+            TRANSFER_MODELS,
+            _resolve_model,
+        )
+
+        self.base_dir = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.base_dir, ignore_errors=True)
+        self.source_path = self.base_dir / "db.sqlite3"
+
+        models = [
+            _resolve_model(model)
+            for model in TRANSFER_MODELS + OPTIONAL_ACCOUNT_MODELS
+        ] + [Site]
+        source = sqlite3.connect(self.source_path)
+        try:
+            for model in models:
+                columns = ", ".join(
+                    f'"{field.attname}"' for field in model._meta.concrete_fields
+                )
+                source.execute(
+                    f'CREATE TABLE "{model._meta.db_table}" ({columns})'
+                )
+            placeholders = ", ".join("?" * len(self.SOURCE_DEPARTMENT))
+            names = ", ".join(f'"{key}"' for key in self.SOURCE_DEPARTMENT)
+            source.execute(
+                f'INSERT INTO "people_department" ({names}) VALUES ({placeholders})',
+                tuple(self.SOURCE_DEPARTMENT.values()),
+            )
+            source.commit()
+        finally:
+            source.close()
+
+    def _expected_timestamp(self, column):
+        return timezone.make_aware(
+            Department._meta.get_field(column).to_python(
+                self.SOURCE_DEPARTMENT[column]
+            ),
+            timezone.get_default_timezone(),
+        )
+
     def test_bulk_create_preserves_source_auto_timestamps(self):
         from .management.commands.transfer_sqlite_data import Command
 
         command = Command()
-        source = command._open_source(settings.BASE_DIR / "db.sqlite3")
+        source = command._open_source(self.source_path)
         try:
-            source_row = source.execute(
-                "SELECT created_at, updated_at FROM people_department ORDER BY id LIMIT 1"
-            ).fetchone()
             command._bulk_create_preserving_timestamps(source, Department)
         finally:
             source.close()
 
         department = Department.objects.order_by("id").first()
         self.assertIsNotNone(department)
-        self.assertEqual(
-            department.created_at,
-            timezone.make_aware(
-                Department._meta.get_field("created_at").to_python(source_row["created_at"]),
-                timezone.get_default_timezone(),
-            ),
-        )
-        self.assertEqual(
-            department.updated_at,
-            timezone.make_aware(
-                Department._meta.get_field("updated_at").to_python(source_row["updated_at"]),
-                timezone.get_default_timezone(),
-            ),
-        )
+        self.assertEqual(department.created_at, self._expected_timestamp("created_at"))
+        self.assertEqual(department.updated_at, self._expected_timestamp("updated_at"))
 
     def test_dry_run_does_not_write(self):
-        with patch.object(connection, "vendor", "postgresql"):
-            call_command("transfer_sqlite_data", "--dry-run")
+        with override_settings(BASE_DIR=self.base_dir):
+            with patch.object(connection, "vendor", "postgresql"):
+                call_command("transfer_sqlite_data", "--dry-run")
         self.assertEqual(Department.objects.count(), 0)
         self.assertEqual(get_user_model().objects.count(), 0)
 
     def test_existing_business_data_aborts_transfer(self):
         Department.objects.create(name="Already present")
-        with patch.object(connection, "vendor", "postgresql"):
-            with self.assertRaises(CommandError):
-                call_command("transfer_sqlite_data", "--dry-run")
+        with override_settings(BASE_DIR=self.base_dir):
+            with patch.object(connection, "vendor", "postgresql"):
+                with self.assertRaises(CommandError):
+                    call_command("transfer_sqlite_data", "--dry-run")
+
+    def test_source_outside_base_dir_is_rejected(self):
+        with override_settings(BASE_DIR=self.base_dir):
+            with patch.object(connection, "vendor", "postgresql"):
+                with self.assertRaises(CommandError):
+                    call_command(
+                        "transfer_sqlite_data",
+                        "--dry-run",
+                        "--source",
+                        str(self.base_dir / "elsewhere.sqlite3"),
+                    )
 
     def test_transfer_rolls_back_when_validation_fails(self):
         with self.assertRaises(CommandError):

@@ -14,6 +14,8 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+import os
+
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
@@ -25,10 +27,14 @@ from .views import ProITPasswordResetView
 
 AUTH_TEMPLATE_CONTEXT = {"is_auth_page": True}
 
+ADMIN_URL = os.getenv("DJANGO_ADMIN_URL", "admin/").strip().lstrip("/")
+
+LOGIN_VIEW = auth_views.LoginView.as_view(extra_context=AUTH_TEMPLATE_CONTEXT)
+
 urlpatterns = [
     path("", home, name="home"),
-    path('admin/', admin.site.urls),
-    path("accounts/login/", auth_views.LoginView.as_view(extra_context=AUTH_TEMPLATE_CONTEXT), name="login"),
+    path(ADMIN_URL, admin.site.urls),
+    path("accounts/login/", LOGIN_VIEW, name="login"),
     path("accounts/signup/", signup, name="signup"),
     path("accounts/profile/", profile_account, name="profile-account"),
     path("accounts/logout/", auth_views.LogoutView.as_view(extra_context=AUTH_TEMPLATE_CONTEXT), name="logout"),

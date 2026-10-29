@@ -3,7 +3,7 @@
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.http import Http404, HttpRequest, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_GET, require_POST
@@ -15,10 +15,18 @@ from .services.import_service import import_csv
 from .services.registry import SPEC_BY_KEY
 
 
+def _spec_or_404(key: str):
+    """Return the spec for a model key, or 404 for an unknown key."""
+    try:
+        return SPEC_BY_KEY[key]
+    except KeyError:
+        raise Http404(f"Unknown model key: {key}")
+
+
 def _allowed(request: HttpRequest, key: str, action: str):
     if not request.user.is_authenticated:
         raise PermissionDenied
-    model = SPEC_BY_KEY[key].model
+    model = _spec_or_404(key).model
     allowed = can_export(request.user, model) if action == "view" else can_import(request.user, model)
     if not allowed:
         raise PermissionDenied
@@ -28,14 +36,14 @@ def _allowed(request: HttpRequest, key: str, action: str):
 @login_required
 def export_csv(request: HttpRequest, model_key: str):
     _allowed(request, model_key, "view")
-    return export_response(SPEC_BY_KEY[model_key])
+    return export_response(_spec_or_404(model_key))
 
 
 @require_GET
 @login_required
 def template_csv(request: HttpRequest, model_key: str):
     _allowed(request, model_key, "view")
-    return template_response(SPEC_BY_KEY[model_key])
+    return template_response(_spec_or_404(model_key))
 
 
 @require_POST

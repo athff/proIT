@@ -4,7 +4,8 @@ from collections import Counter
 from dataclasses import dataclass
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
-from django.db.models import Q
+
+from assets.models import Asset
 
 from .csv_base import CSVImportError, ImportErrorDetail, convert, model_errors, parse_csv
 from .registry import ModelSpec, SPEC_BY_KEY
@@ -61,23 +62,31 @@ def _prepare(content: bytes, spec: ModelSpec):
                 row["category"] = _resolve(raw.get("category", "").strip(), spec.foreign_keys[1], row_number)
             if spec.key == "assets":
                 row["model"] = _resolve_model(raw, row_number)
-                if row["assigned_employee"] is not None and row["status"] != "assigned":
+                # Optional columns may be missing from the header entirely.
+                assigned = row.get("assigned_employee")
+                status = row.get("status") or Asset.Status.AVAILABLE
+                if assigned is not None and status != Asset.Status.ASSIGNED:
                     errors.append(ImportErrorDetail(row_number, "status", "assignment_status", "Assigned assets must use status assigned."))
-                if row["status"] == "assigned" and row["assigned_employee"] is None:
+                if status == Asset.Status.ASSIGNED and assigned is None:
                     errors.append(ImportErrorDetail(row_number, "assigned_employee", "assignment_status", "Assigned assets require an employee."))
             key = _identity(row, spec)
-            identity_values = (
-                [key]
-                if spec.key == "asset_models"
-                else [row.get(field) for field in spec.identity]
-            )
-            for identity_value in identity_values:
-                seen[(spec.key, identity_value)] += 1
-                if seen[(spec.key, identity_value)] > 1:
+            # Track each identity field in its own namespace so a value that is
+            # valid for one field is not treated as colliding with another.
+            if spec.key == "asset_models":
+                identity_values = [("__composite__", key)]
+            else:
+                identity_values = [
+                    (field, row.get(field))
+                    for field in spec.identity
+                    if field in row
+                ]
+            for field_name, identity_value in identity_values:
+                seen[(spec.key, field_name, identity_value)] += 1
+                if seen[(spec.key, field_name, identity_value)] > 1:
                     errors.append(
                         ImportErrorDetail(
                             row_number,
-                            None,
+                            None if field_name == "__composite__" else field_name,
                             "duplicate_file",
                             "Duplicate identity in file.",
                         )
@@ -88,8 +97,16 @@ def _prepare(content: bytes, spec: ModelSpec):
     if errors:
         raise CSVImportError(errors)
     for row_number, row, key in prepared:
-        if _database_duplicate(row, spec):
-            errors.append(ImportErrorDetail(row_number, None, "duplicate_database", "Record already exists."))
+        duplicate_field = _duplicate_field(row, spec)
+        if duplicate_field is not None:
+            errors.append(
+                ImportErrorDetail(
+                    row_number,
+                    duplicate_field,
+                    "duplicate_database",
+                    "Record already exists.",
+                )
+            )
     if errors:
         raise CSVImportError(errors)
     return prepared
@@ -110,22 +127,22 @@ def _resolve_model(raw, row_number):
         ) from exc
 
 
-def _database_identity(row, spec):
-    if spec.key == "asset_models":
-        return {"manufacturer": row["manufacturer"], "name": row["name"]}
-    return {field: row[field] for field in spec.identity if field in row}
+def _duplicate_field(row, spec):
+    """Return the identity field that already exists in the database, if any.
 
-
-def _database_duplicate(row, spec):
+    Each identity field is a separate unique constraint, so they are checked
+    independently. ORing them together would reject a row whose asset_tag
+    happens to match a different record's serial_number.
+    """
     if spec.key == "asset_models":
-        return spec.model.objects.filter(
+        exists = spec.model.objects.filter(
             manufacturer=row["manufacturer"], name=row["name"]
         ).exists()
-    query = Q()
+        return "name" if exists else None
     for field in spec.identity:
-        if field in row:
-            query |= Q(**{field: row[field]})
-    return spec.model.objects.filter(query).exists()
+        if field in row and spec.model.objects.filter(**{field: row[field]}).exists():
+            return field
+    return None
 
 
 def import_csv(content: bytes, model_key: str) -> ImportResult:

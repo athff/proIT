@@ -6,9 +6,10 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 from django.contrib.auth.views import PasswordResetView
+from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.db import connection
-from django.contrib import messages
+from django.db.models import Count
 from django.shortcuts import redirect, render
 
 from assets.models import Asset, AssetModel, Category, Manufacturer, SupportTicket
@@ -97,11 +98,14 @@ def dashboard(request):
         "assigned_employee",
         "location",
     )
-    asset_count = assets.count()
+    # One grouped query instead of a COUNT per status.
+    counts_by_status = dict(
+        Asset.objects.values_list("status").annotate(total=Count("id"))
+    )
     status_counts = {
-        key: assets.filter(status=key).count()
-        for key, _ in Asset.Status.choices
+        key: counts_by_status.get(key, 0) for key, _ in Asset.Status.choices
     }
+    asset_count = sum(status_counts.values())
     status_rows = [
         {
             "value": key,

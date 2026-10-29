@@ -7,17 +7,23 @@ from django.shortcuts import render
 
 from assets.models import Asset
 from dataio.services.authorization import can_view
+
+
 @login_required
 def reports(request):
     if not can_view(request.user, Asset):
         raise PermissionDenied
     assets = Asset.objects.select_related("model__category", "location")
-    total = assets.count()
+    # One grouped query replaces two COUNTs per status.
+    counts_by_status = dict(
+        Asset.objects.values_list("status").annotate(total=Count("id"))
+    )
+    total = sum(counts_by_status.values())
     status_rows = [
         {
             "label": label,
-            "count": assets.filter(status=value).count(),
-            "percent": round(assets.filter(status=value).count() / total * 100)
+            "count": counts_by_status.get(value, 0),
+            "percent": round(counts_by_status.get(value, 0) / total * 100)
             if total else 0,
         }
         for value, label in Asset.Status.choices
@@ -41,6 +47,6 @@ def reports(request):
             "category_rows": category_rows,
             "location_rows": location_rows,
             "assigned_count": assets.filter(assigned_employee__isnull=False).count(),
-            "available_count": assets.filter(status=Asset.Status.AVAILABLE).count(),
+            "available_count": counts_by_status.get(Asset.Status.AVAILABLE, 0),
         },
     )
